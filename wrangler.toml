@@ -1,0 +1,7 @@
+name = "knesset26-bets"
+main = "src/worker.js"
+compatibility_date = "2026-10-20"
+
+[[kv_namespaces]]
+binding = "BETS"
+id = "REPLACE_WITH_KV_ID"
