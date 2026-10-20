@@ -54,7 +54,7 @@ const POLLS = [
     seats: { yashar:22, likud:20, beyahad:13, democratim:10, meshutefet:8, shas:7, yahadut:8, tziyonut:6, otzma:8, beiteinu:9, raam:5, winter:0, miluim:4, haredi:0, noam:0 } },
 ];
 
-const BLOC_LABELS = { right: "גוש הימין", center: "מרכז-שמאל", arab: "המפלגות הערביות", none: "ללא גוש" };
+const BLOC_LABELS = { right: "קואליציה", center: "אופוזיציה", arab: "המפלגות הערביות", none: "עוד לא ברור" };
 
 const HTML = `<!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -210,7 +210,7 @@ const HTML = `<!DOCTYPE html>
   <div class="counter">
     <div class="nums"><span>חולקו: <span id="used">0</span></span><span id="left">נותרו 120</span></div>
     <div class="bar" id="bar"><div class="seg-r" style="width:0%"></div><div class="seg-c" style="width:0%"></div><div class="seg-u" style="width:0%"></div></div>
-    <div class="legend"><span><i style="background:#1f4e9c"></i>גוש הימין</span><span><i style="background:#0e9aa7"></i>האופוזיציה</span><span><i style="background:#b7a96b"></i>עוד לא ברור (ערביות/קטנות)</span></div>
+    <div class="legend"><span><i style="background:#1f4e9c"></i>קואליציה</span><span><i style="background:#0e9aa7"></i>אופוזיציה</span><span><i style="background:#b7a96b"></i>עוד לא ברור (ערביות/קטנות)</span></div>
     <div class="blocstrip" id="blocstrip"></div>
     <div class="smallstrip" id="smallstrip"></div>
     <div class="hint">אי אפשר לעבור את ה-120 — והשליחה נפתחת רק כשחילקתם בדיוק 120. אפשר לעדכן את ההימור עד הסגירה.</div>
@@ -339,8 +339,8 @@ function render() {
   const blocs = { right: 0, center: 0, arab: 0 };
   PARTIES.forEach(p => { if (p.bloc !== "none") blocs[p.bloc] += state[p.id] || 0; });
   $("#blocstrip").innerHTML =
-    '<span style="color:#1f4e9c">גוש הימין: <b>' + blocs.right + '</b> <span class="bloc61">' + (blocs.right >= 61 ? "יש רוב ✔" : "מתוך 61 לרוב") + '</span></span>' +
-    '<span style="color:#0e9aa7">האופוזיציה: <b>' + blocs.center + '</b></span>' +
+    '<span style="color:#1f4e9c">קואליציה: <b>' + blocs.right + '</b> <span class="bloc61">' + (blocs.right >= 61 ? "יש רוב ✔" : "מתוך 61 לרוב") + '</span></span>' +
+    '<span style="color:#0e9aa7">אופוזיציה: <b>' + blocs.center + '</b></span>' +
     '<span style="color:#157347">המפלגות הערביות: <b>' + blocs.arab + '</b></span>';
   const shortNames = { winter: "וינטר", miluim: "הנדל-זליכה", haredi: "הציבור החרדי", noam: "נעם לישראל" };
   $("#smallstrip").textContent = "מפלגות קטנות: " + PARTIES.filter(p => p.below).map(p => (shortNames[p.id] || p.name) + " " + (state[p.id] || 0)).join(" · ");
@@ -485,8 +485,8 @@ function renderStatCards(el, bets) {
   const sorted = [...PARTIES].sort((a,b) => avg[b.id] - avg[a.id]);
   el.innerHTML =
     '<div class="stat"><b>' + bets.length + '</b><span>מהמרים</span></div>' +
-    '<div class="stat"><b>' + Math.round(bavg.right) + '</b><span>גוש ימין (ממוצע)</span></div>' +
-    '<div class="stat"><b>' + Math.round(bavg.center) + '</b><span>מרכז-שמאל (ממוצע)</span></div>' +
+    '<div class="stat"><b>' + Math.round(bavg.right) + '</b><span>קואליציה (ממוצע)</span></div>' +
+    '<div class="stat"><b>' + Math.round(bavg.center) + '</b><span>אופוזיציה (ממוצע)</span></div>' +
     '<div class="stat"><b>' + Math.round(bavg.arab) + '</b><span>מפלגות ערביות (ממוצע)</span></div>' +
     '<div class="stat"><b>' + sorted[0].name + '</b><span>המפלגה הגדולה בממוצע</span></div>';
   return { avg, sorted };
@@ -511,14 +511,14 @@ function renderBets(el, bets, showGroup) {
     const bs = blocSums(b.parties);
     const d = document.createElement("div");
     d.className = "bet";
-    const badge61 = bs.right >= 61 ? '<span class="chip c-61">ימין 61+ 👑</span>'
-      : (bs.center >= 61 ? '<span class="chip c-61">מרכז-שמאל 61+ 👑</span>' : "");
+    const badge61 = bs.right >= 61 ? '<span class="chip c-61">קואליציה 61+ 👑</span>'
+      : (bs.center >= 61 ? '<span class="chip c-61">אופוזיציה 61+ 👑</span>' : "");
     d.innerHTML = '<div class="head"><span class="who">' + escapeHtml(b.name) + '</span>' +
       (showGroup && b.groupName ? '<span class="gname">' + escapeHtml(b.groupName) + '</span>' : '') +
-      '<span class="chip c-right">ימין ' + bs.right + '</span>' +
-      '<span class="chip c-center">מרכז-שמאל ' + bs.center + '</span>' +
+      '<span class="chip c-right">קואליציה ' + bs.right + '</span>' +
+      '<span class="chip c-center">אופוזיציה ' + bs.center + '</span>' +
       '<span class="chip c-arab">ערביות ' + bs.arab + '</span>' +
-      (bs.none ? '<span class="chip c-none">ללא גוש ' + bs.none + '</span>' : '') +
+      (bs.none ? '<span class="chip c-none">עוד לא ברור ' + bs.none + '</span>' : '') +
       badge61 +
       '<span class="when">' + new Date(b.ts).toLocaleString("he-IL") + '</span></div>' +
       '<div class="detail">' + PARTIES.filter(p => (b.parties[p.id]||0) > 0)
