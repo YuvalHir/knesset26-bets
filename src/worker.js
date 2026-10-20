@@ -23,11 +23,6 @@ const PARTIES = [
 ];
 
 const GENERAL = { code: "GENERAL", name: "הקבוצה הכללית" };
-
-async function sha256hex(t) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
-}
 // נעילת ההימורים: 27.10.2026 21:59 שעון ישראל - מחושב דינמית לפי Asia/Jerusalem (כולל שעון קיץ/חורף)
 function jerusalemUtcMs(y, mo, d, h, mi) {
   const guess = Date.UTC(y, mo - 1, d, h, mi) - 2 * 3600e3; // ישראל היא UTC+2/+3
@@ -100,7 +95,7 @@ const HTML = `<!DOCTYPE html>
   .bar { height:12px; background:#e5ebfb; border-radius:999px; overflow:hidden; margin-top:8px; display:flex; }
   .bar > div { height:100%; transition:width .15s; }
   .bar .seg-r { background:#1f4e9c; }
-  .bar .seg-c { background:#c1121f; }
+  .bar .seg-c { background:#0e9aa7; }
   .bar .seg-a { background:#157347; }
   .bar .seg-h { background:#4b5563; }
   .bar .seg-m { background:#b7a96b; }
@@ -157,7 +152,7 @@ const HTML = `<!DOCTYPE html>
   .bet .gname { font-size:11px; font-weight:700; background:#eef3ff; color:var(--blue); border-radius:999px; padding:2px 9px; }
   .chip { font-size:12px; font-weight:700; border-radius:999px; padding:2px 10px; }
   .c-right { background:#dbe7ff; color:#1f4e9c; }
-  .c-center { background:#fbe3e3; color:#c1121f; }
+  .c-center { background:#ffe6ef; color:#d6336c; }
   .c-arab { background:#dff3e8; color:#157347; }
   .c-haredi { background:#e5e7eb; color:#374151; }
   .c-miluim { background:#f3ecd4; color:#8a7a2e; }
@@ -219,7 +214,7 @@ const HTML = `<!DOCTYPE html>
   <div class="counter">
     <div class="nums"><span>חולקו: <span id="used">0</span></span><span id="left">נותרו 120</span></div>
     <div class="bar" id="bar"><div class="seg-r" style="width:0%"></div><div class="seg-c" style="width:0%"></div><div class="seg-a" style="width:0%"></div><div class="seg-h" style="width:0%"></div><div class="seg-m" style="width:0%"></div></div>
-    <div class="legend"><span><i style="background:#1f4e9c"></i>קואליציה</span><span><i style="background:#c1121f"></i>אופוזיציה</span><span><i style="background:#157347"></i>מפלגות ערביות</span><span><i style="background:#4b5563"></i>הציבור החרדי</span><span><i style="background:#b7a96b"></i>הנדל-זליכה</span></div>
+    <div class="legend"><span><i style="background:#1f4e9c"></i>קואליציה</span><span><i style="background:#0e9aa7"></i>אופוזיציה</span><span><i style="background:#157347"></i>מפלגות ערביות</span><span><i style="background:#4b5563"></i>הציבור החרדי</span><span><i style="background:#b7a96b"></i>הנדל-זליכה</span></div>
     <div class="blocstrip" id="blocstrip"></div>
     <div class="hint">אי אפשר לעבור את ה-120 — והשליחה נפתחת רק כשחילקתם בדיוק 120. אפשר לעדכן את ההימור עד הסגירה.</div>
     <div class="hint" id="countdown" style="font-weight:700;color:var(--bluedark)"></div>
@@ -230,9 +225,7 @@ const HTML = `<!DOCTYPE html>
     <div class="pollmeta" id="pollmeta"></div>
     <button class="fillbtn" id="fillpoll">מלאו את הסליידרים מהסקר 🎯</button>
   </div>
-  <div class="editmode hidden" id="editmode">✏️ עריכת ההימור שלך - מולא מההימור הקודם שלך במכשיר הזה
-    <div style="margin-top:6px;font-weight:500">קישור עריכה אישי למכשיר אחר: <button type="button" id="copyedit" style="font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid #d9c26a;background:#fff;color:#8a6d00;border-radius:8px;padding:2px 10px;cursor:pointer">העתק 🔗</button></div>
-  </div>
+  <div class="editmode hidden" id="editmode">✏️ עריכת ההימור שלך - מולא מההימור הקודם שלך במכשיר הזה</div>
   <div class="name-row">
     <input id="bettor" maxlength="24" placeholder="השם שלכם (כדי שיכירו את ההימור)">
   </div>
@@ -303,8 +296,7 @@ async function enterGroup(g) {
 
 // זיהוי חוזר: אם במכשיר הזה כבר הימרו בקבוצה הזו - ממלאים את ההימור הקודם לעריכה
 async function loadMyBet() {
-  const stored = getStoredBet();
-  const myName = stored && stored.name;
+  const myName = localStorage.getItem("bettor:" + group.code);
   if (!myName) return;
   try {
     const r = await api("/api/bets?code=" + encodeURIComponent(group.code));
@@ -330,14 +322,6 @@ $("#copylink").addEventListener("click", async () => {
   catch { prompt("העתיקו את הקישור:", url); }
   setTimeout(() => $("#copylink").textContent = "העתק קישור לקבוצה 🔗", 1500);
 });
-$("#copyedit").addEventListener("click", async () => {
-  const sb = getStoredBet();
-  if (!sb) return;
-  const url = myEditLink(sb.name, sb.token);
-  try { await navigator.clipboard.writeText(url); $("#copyedit").textContent = "הועתק! ✅"; }
-  catch { prompt("העתיקו את קישור העריכה האישי:", url); }
-  setTimeout(() => $("#copyedit").textContent = "העתק 🔗", 1500);
-});
 $("#createg").addEventListener("click", async () => {
   const name = $("#newgname").value.trim();
   if (name.length < 2) { $("#createerr").textContent = "צריך שם לקבוצה"; return; }
@@ -359,12 +343,6 @@ $("#joing").addEventListener("click", async () => {
   const urlCode = new URLSearchParams(location.search).get("g");
   const saved = localStorage.getItem("groupCode");
   const code = (urlCode || saved || "").toUpperCase();
-  const editTok = new URLSearchParams(location.search).get("edit");
-  const editName = new URLSearchParams(location.search).get("n");
-  if (code && editTok && editName) {
-    localStorage.setItem("bet:" + code, JSON.stringify({ name: editName, token: editTok }));
-    history.replaceState(null, "", "?g=" + code); // מסתיר את הטוקן משורת הכתובת
-  }
   if (code) {
     const r = await api("/api/group?code=" + encodeURIComponent(code));
     if (r.ok) return enterGroup(r.data);
@@ -380,7 +358,7 @@ function render() {
   const blocs = blocSums(state);
   $("#blocstrip").innerHTML =
     '<span style="color:#1f4e9c">קואליציה: <b>' + blocs.right + '</b> <span class="bloc61">' + (blocs.right >= 61 ? "יש רוב ✔" : "מתוך 61 לרוב") + '</span></span>' +
-    '<span style="color:#c1121f">אופוזיציה: <b>' + blocs.center + '</b></span>' +
+    '<span style="color:#0e9aa7">אופוזיציה: <b>' + blocs.center + '</b></span>' +
     '<span style="color:#157347">מפלגות ערביות: <b>' + blocs.arab + '</b></span>' +
     '<span style="color:#4b5563">הציבור החרדי: <b>' + blocs.haredi + '</b></span>' +
     '<span style="color:#8a7a2e">הנדל-זליכה: <b>' + blocs.miluim + '</b></span>';
@@ -390,8 +368,8 @@ function render() {
   segs[2].style.width = (blocs.arab/120*100) + "%";
   segs[3].style.width = (blocs.haredi/120*100) + "%";
   segs[4].style.width = (blocs.miluim/120*100) + "%";
-  const storedBet = group ? getStoredBet() : null;
-  const editing = storedBet && $("#bettor").value.trim() === storedBet.name;
+  const myName = group ? localStorage.getItem("bettor:" + group.code) : null;
+  const editing = myName && $("#bettor").value.trim() === myName;
   $("#editmode").classList.toggle("hidden", !editing);
   if (Date.now() < BET_CLOSE) $("#submit").textContent = editing ? "עדכון ההימור שלי ✏️" : "חילקתם 120? שלחו את ההימור 🚀";
   $("#submit").disabled = !(t === 120 && $("#bettor").value.trim().length >= 2);
@@ -490,48 +468,29 @@ setInterval(tickClose, 1000); tickClose();
 $("#bettor").addEventListener("input", render);
 render();
 
-// אבטחת עריכה: טוקן אקראי נשמר במכשיר; השרת שומר רק גיבוב (SHA-256) שלו
-function makeToken() {
-  const a = new Uint8Array(24);
-  crypto.getRandomValues(a);
-  return btoa(String.fromCharCode.apply(null, a)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-async function sha256hex(t) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
-}
-function getStoredBet() {
-  try { const v = JSON.parse(localStorage.getItem("bet:" + group.code)); return (v && v.name && v.token) ? v : null; } catch { return null; }
-}
-function setStoredBet(name, token) { localStorage.setItem("bet:" + group.code, JSON.stringify({ name, token })); }
-function myEditLink(name, token) {
-  return location.origin + "/?g=" + group.code + "&n=" + encodeURIComponent(name) + "&edit=" + token;
-}
-
 async function send() {
   const name = $("#bettor").value.trim();
-  const stored = getStoredBet();
-  let token;
-  if (stored && stored.name === name) {
-    token = stored.token; // ההימור שלי במכשיר הזה - עריכה
+  const myName = localStorage.getItem("bettor:" + group.code);
+  let overwrite = false;
+  if (name === myName) {
+    overwrite = true; // אותו מהמר על אותו מכשיר - עריכה של ההימור הקודם
   } else {
     try {
       const r = await api("/api/bets?code=" + encodeURIComponent(group.code));
       if ((((r.data && r.data.bets) || []).some(b => b.name === name))) {
-        $("#msg").textContent = 'השם "' + name + '" תפוס בקבוצה הזו - בחרו שם אחר ✋';
+        $("#msg").textContent = 'השם "' + name + '" כבר תפוס בקבוצה הזו - בחרו שם אחר ✋';
         return;
       }
     } catch (e) {}
-    token = makeToken(); // הימור חדש - טוקן עריכה חדש
   }
   const res = await fetch("/api/bet", {
     method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ code: group.code, name, parties: state, token })
+    body: JSON.stringify({ code: group.code, name, parties: state, overwrite })
   });
-  if (res.status === 409) { $("#msg").textContent = 'השם "' + name + '" תפוס בקבוצה הזו - בחרו שם אחר ✋'; return; }
+  if (res.status === 409) { $("#msg").textContent = 'השם "' + name + '" כבר תפוס בקבוצה הזו - בחרו שם אחר ✋'; return; }
   if (res.status === 403) { $("#msg").textContent = "ההימורים נסגרו 🔒"; tickClose(); return; }
   if (!res.ok) { $("#msg").textContent = "משהו השתבש, נסו שוב 😕"; return; }
-  setStoredBet(name, token);
+  localStorage.setItem("bettor:" + group.code, name);
   render();
   $("#msg").textContent = "נשמר! עוברים להשוואה… 🎉";
   setTimeout(() => switchTab("stats"), 800);
@@ -673,10 +632,6 @@ function validBet(body) {
 const betsKey = (code) => "b2:" + code;
 
 async function readBets(env, code) {
-  const bets = (await env.BETS.get(betsKey(code), { type: "json", cacheTtl: 60 })) || [];
-  return bets.map(({ th, ...b }) => b); // הגיבוב אף פעם לא יוצא החוצה
-}
-async function readBetsRaw(env, code) {
   return (await env.BETS.get(betsKey(code), { type: "json", cacheTtl: 60 })) || [];
 }
 
@@ -742,22 +697,16 @@ export default {
       if (!(await getGroup(env, code))) return json({ error: "קבוצה לא קיימת" }, 404);
       const v = validBet(body);
       if (typeof v === "string") return json({ error: v }, 400);
-      const bets = await readBetsRaw(env, code);
+      const bets = await readBets(env, code);
       const i = bets.findIndex(b => b.name === v.name);
-      const token = String(body.token || "");
-      const th = token ? await sha256hex(token) : "";
-      if (i >= 0) {
-        // עריכה רק עם טוקן העריכה המקורי (השרת שומר רק גיבוב). הימורים ישנים ללא גיבוב נעולים לעריכה דרך ה-API.
-        if (!bets[i].th || bets[i].th !== th) return json({ error: 'השם "' + v.name + '" תפוס בקבוצה הזו - בחרו שם אחר' }, 409);
-        bets[i] = { name: v.name, parties: v.clean, th: bets[i].th, ts: Date.now() };
-      } else {
-        bets.push({ name: v.name, parties: v.clean, th, ts: Date.now() });
-      }
+      if (i >= 0 && !body.overwrite) return json({ exists: true }, 409);
+      const entry = { name: v.name, parties: v.clean, ts: Date.now() };
+      if (i >= 0) bets[i] = entry; else bets.push(entry);
       await env.BETS.put(betsKey(code), JSON.stringify(bets));
       return json({ ok: true });
     }
 
     if (url.pathname === "/health") return json({ ok: true });
-    return new Response(HTML, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+    return new Response(HTML, { headers: { "content-type": "text/html; charset=utf-8" } });
   },
 };
