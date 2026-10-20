@@ -693,13 +693,10 @@ async function readBetsRaw(env, code) {
   return results.map(rowToBet);
 }
 
-// גיבוי זמני בזמן שהפרופגציה של KV משלימה (המפתח נכתב מחדש אחרי ניקוי מפתחות ישנים)
-const GROUP_FALLBACKS = { Y7ZS9A6: { code: "Y7ZS9A6", name: "הדירה" } };
-
 async function getGroup(env, code) {
   if (code === GENERAL.code) return GENERAL;
   const g = await env.BETS_DB.prepare("SELECT code, name, ts FROM groups WHERE code = ?").bind(code).first();
-  return g || GROUP_FALLBACKS[code] || null;
+  return g || null;
 }
 
 export default {
@@ -740,9 +737,6 @@ export default {
       const { results: groups } = await env.BETS_DB.prepare("SELECT code, name FROM groups ORDER BY ts").all();
       for (const g of groups) {
         seen.add(g.code); out.push({ code: g.code, name: g.name, bets: await readBets(env, g.code) });
-      }
-      for (const g of Object.values(GROUP_FALLBACKS)) {
-        if (!seen.has(g.code)) out.push({ code: g.code, name: g.name, bets: await readBets(env, g.code) });
       }
       return json({ groups: out });
     }
