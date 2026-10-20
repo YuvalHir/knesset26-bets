@@ -562,7 +562,7 @@ export default {
         const g = await env.BETS.get(k.name, "json");
         if (g) out.push({ code: g.code, name: g.name, bets: await readBets(env, g.code) });
       }
-      return json({ groups: out.filter(g => g.bets.length || g.code !== GENERAL.code) });
+      return json({ groups: out });
     }
 
     if (url.pathname === "/api/bet" && request.method === "POST") {
