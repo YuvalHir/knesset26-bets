@@ -92,9 +92,13 @@ const HTML = `<!DOCTYPE html>
   .gate .err { color:#d6336c; font-weight:700; font-size:14px; min-height:18px; margin-top:8px; }
   .counter { position:sticky; top:0; z-index:5; background:#fff; border:1px solid #dbe4ff; border-radius:18px; box-shadow:0 4px 18px rgba(0,56,184,.12); padding:14px 18px; margin-bottom:14px; }
   .counter .nums { display:flex; justify-content:space-between; align-items:baseline; font-weight:900; font-size:22px; color:var(--bluedark); }
-  .bar { height:12px; background:#e5ebfb; border-radius:999px; overflow:hidden; margin-top:8px; }
-  .bar > div { height:100%; background:var(--blue); transition:width .15s; }
-  .bar.full > div { background:#0d9e5f; }
+  .bar { height:12px; background:#e5ebfb; border-radius:999px; overflow:hidden; margin-top:8px; display:flex; }
+  .bar > div { height:100%; transition:width .15s; }
+  .bar .seg-r { background:#1f4e9c; }
+  .bar .seg-c { background:#0e9aa7; }
+  .bar .seg-u { background:#b7a96b; }
+  .legend { display:flex; justify-content:center; gap:14px; margin-top:5px; font-size:11.5px; color:#5a627a; flex-wrap:wrap; }
+  .legend i { display:inline-block; width:9px; height:9px; border-radius:3px; margin-left:4px; vertical-align:-1px; }
   .hint { font-size:14px; opacity:.7; margin-top:6px; }
   .pollbox { background:#fff; border:1px solid #dbe4ff; border-radius:18px; padding:12px 14px; margin-bottom:14px; }
   .pollbox .ptitle { font-weight:900; font-size:15px; margin-bottom:8px; }
@@ -205,7 +209,8 @@ const HTML = `<!DOCTYPE html>
 <div class="wrap" id="view-bet">
   <div class="counter">
     <div class="nums"><span>חולקו: <span id="used">0</span></span><span id="left">נותרו 120</span></div>
-    <div class="bar" id="bar"><div style="width:0%"></div></div>
+    <div class="bar" id="bar"><div class="seg-r" style="width:0%"></div><div class="seg-c" style="width:0%"></div><div class="seg-u" style="width:0%"></div></div>
+    <div class="legend"><span><i style="background:#1f4e9c"></i>גוש הימין</span><span><i style="background:#0e9aa7"></i>האופוזיציה</span><span><i style="background:#b7a96b"></i>עוד לא ברור (ערביות/קטנות)</span></div>
     <div class="blocstrip" id="blocstrip"></div>
     <div class="smallstrip" id="smallstrip"></div>
     <div class="hint">אי אפשר לעבור את ה-120 — והשליחה נפתחת רק כשחילקתם בדיוק 120. אפשר לעדכן את ההימור עד הסגירה.</div>
@@ -339,9 +344,10 @@ function render() {
     '<span style="color:#157347">המפלגות הערביות: <b>' + blocs.arab + '</b></span>';
   const shortNames = { winter: "וינטר", miluim: "הנדל-זליכה", haredi: "הציבור החרדי", noam: "נעם לישראל" };
   $("#smallstrip").textContent = "מפלגות קטנות: " + PARTIES.filter(p => p.below).map(p => (shortNames[p.id] || p.name) + " " + (state[p.id] || 0)).join(" · ");
-  const bar = $("#bar");
-  bar.classList.toggle("full", t === 120);
-  bar.firstElementChild.style.width = Math.min(100, t/120*100) + "%";
+  const segs = $("#bar").children;
+  segs[0].style.width = (blocs.right/120*100) + "%";
+  segs[1].style.width = (blocs.center/120*100) + "%";
+  segs[2].style.width = ((t - blocs.right - blocs.center)/120*100) + "%";
   $("#submit").disabled = !(t === 120 && $("#bettor").value.trim().length >= 2);
   document.querySelectorAll(".card").forEach(c => {
     const id = c.dataset.id, v = state[id];
