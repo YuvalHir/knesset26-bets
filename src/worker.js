@@ -513,7 +513,7 @@ function validBet(body) {
   return { name, clean };
 }
 
-const betsKey = (code) => (code === GENERAL.code ? "all" : "bets:" + code); // "all" = מיגרציה של הימורים ישנים
+const betsKey = (code) => "bets:" + code;
 
 async function readBets(env, code) {
   return (await env.BETS.get(betsKey(code), "json")) || [];
