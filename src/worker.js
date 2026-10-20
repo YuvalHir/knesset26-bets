@@ -151,6 +151,9 @@ const HTML = `<!DOCTYPE html>
   .avgrow .fill { height:100%; border-radius:999px; min-width:2px; }
   .avgrow .v { width:44px; font-weight:900; text-align:left; }
   .avgrow .polltick { position:absolute; top:-3px; width:2px; height:24px; background:#101b3c99; }
+  .polllegend { font-size:12.5px; color:#5a6a96; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+  .polllegend .tick { display:inline-block; width:2px; height:14px; background:#101b3c99; }
+  .polllegend:empty { display:none; }
   .bet { background:#fff; border:1px solid #e7edff; border-radius:16px; padding:12px 16px; margin-bottom:10px; box-shadow:0 2px 10px rgba(16,27,60,.07); cursor:pointer; }
   .bet .head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .bet .who { font-weight:900; font-size:17px; }
@@ -239,6 +242,7 @@ const HTML = `<!DOCTYPE html>
 </div>
 
 <div class="wrap hidden" id="view-stats">
+  <div id="polllegend"></div>
   <h2 id="stats-title">הקבוצה שלכם</h2>
   <div class="stat-cards" id="stat-cards"></div>
   <h3>ההימור הממוצע בקבוצה</h3>
@@ -618,6 +622,7 @@ function renderBets(el, bets, showGroup) {
 }
 
 async function loadStats() {
+  $("#polllegend").innerHTML = poll ? '<span class="tick"></span>קו אפור = סקר ' + poll.label + ' (' + poll.date + '), להשוואה מול ממוצע ההימורים' : '';
   // הקבוצה הנוכחית
   $("#stats-title").textContent = "הקבוצה: " + group.name;
   const mine = await api("/api/bets?code=" + encodeURIComponent(group.code));
