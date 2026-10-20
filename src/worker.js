@@ -104,6 +104,10 @@ const HTML = `<!DOCTYPE html>
   .pollmeta { font-size:12.5px; opacity:.7; margin-top:8px; }
   .pollmeta a { color:var(--blue); }
   .fillbtn { width:100%; margin-top:8px; font-family:inherit; font-size:15px; font-weight:900; padding:10px; border-radius:12px; border:2px dashed var(--blue); background:#eef3ff; color:var(--blue); cursor:pointer; }
+  .blocstrip { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:10px; font-size:13.5px; font-weight:700; }
+  .blocstrip b { font-weight:900; }
+  .bloc61 { font-size:11.5px; font-weight:500; opacity:.6; }
+  .smallstrip { margin-top:6px; font-size:12px; color:#5a627a; text-align:center; }
   .name-row { display:flex; gap:8px; margin-bottom:14px; }
   .name-row input { flex:1; font-family:inherit; font-size:17px; padding:12px 14px; border-radius:14px; border:2px solid #c7d5f7; background:#fff; }
   .card { background:#fff; border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:0 2px 10px rgba(16,27,60,.07); display:flex; align-items:center; gap:14px; border:1px solid #e7edff; }
@@ -196,6 +200,8 @@ const HTML = `<!DOCTYPE html>
   <div class="counter">
     <div class="nums"><span>חולקו: <span id="used">0</span></span><span id="left">נותרו 120</span></div>
     <div class="bar" id="bar"><div style="width:0%"></div></div>
+    <div class="blocstrip" id="blocstrip"></div>
+    <div class="smallstrip" id="smallstrip"></div>
     <div class="hint">אי אפשר לעבור את ה-120 — והשליחה נפתחת רק כשחילקתם בדיוק 120. אפשר לעדכן את ההימור עד הסגירה.</div>
     <div class="hint" id="countdown" style="font-weight:700;color:var(--bluedark)"></div>
   </div>
@@ -318,6 +324,14 @@ function render() {
   const t = total(), left = 120 - t;
   $("#used").textContent = t;
   $("#left").textContent = left > 0 ? "נותרו " + left : (left === 0 ? "בדיוק 120! ✔" : "חריגה!");
+  const blocs = { right: 0, center: 0, arab: 0 };
+  PARTIES.forEach(p => { if (p.bloc !== "none") blocs[p.bloc] += state[p.id] || 0; });
+  $("#blocstrip").innerHTML =
+    '<span style="color:#1f4e9c">גוש הימין: <b>' + blocs.right + '</b> <span class="bloc61">' + (blocs.right >= 61 ? "יש רוב ✔" : "מתוך 61 לרוב") + '</span></span>' +
+    '<span style="color:#0e9aa7">האופוזיציה: <b>' + blocs.center + '</b></span>' +
+    '<span style="color:#157347">המפלגות הערביות: <b>' + blocs.arab + '</b></span>';
+  const shortNames = { winter: "וינטר", miluim: "הנדל-זליכה", haredi: "הציבור החרדי", noam: "נעם לישראל" };
+  $("#smallstrip").textContent = "מפלגות קטנות: " + PARTIES.filter(p => p.below).map(p => (shortNames[p.id] || p.name) + " " + (state[p.id] || 0)).join(" · ");
   const bar = $("#bar");
   bar.classList.toggle("full", t === 120);
   bar.firstElementChild.style.width = Math.min(100, t/120*100) + "%";
