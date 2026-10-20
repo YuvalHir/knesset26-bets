@@ -2,6 +2,7 @@ name = "knesset26-bets"
 main = "src/worker.js"
 compatibility_date = "2026-10-20"
 
-[[kv_namespaces]]
-binding = "BETS"
-id = "6909bcc7a7e744e5aa085daf014ad406"
+[[d1_databases]]
+binding = "BETS_DB"
+database_name = "knesset26-bets"
+database_id = "bdf79a4c-faef-4830-b7eb-cfaff3e8cd8f"

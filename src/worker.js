@@ -681,14 +681,16 @@ function validBet(body) {
   return { name, clean };
 }
 
-const betsKey = (code) => "b2:" + code;
+// אחסון ב-D1 (SQLite) - עקביות חזקה, שורה אחת לכל הימור כך שהימורים במקביל לא דורסים זה את זה
+function rowToBet(r) { return { name: r.name, parties: JSON.parse(r.parties), ts: r.ts, th: r.th }; }
 
 async function readBets(env, code) {
-  const bets = (await env.BETS.get(betsKey(code), { type: "json", cacheTtl: 60 })) || [];
-  return bets.map(({ th, ...b }) => b); // הגיבוב אף פעם לא יוצא החוצה
+  const { results } = await env.BETS_DB.prepare("SELECT name, parties, ts, th FROM bets WHERE code = ? ORDER BY ts").bind(code).all();
+  return results.map(rowToBet).map(({ th, ...b }) => b); // הגיבוב אף פעם לא יוצא החוצה
 }
 async function readBetsRaw(env, code) {
-  return (await env.BETS.get(betsKey(code), { type: "json", cacheTtl: 60 })) || [];
+  const { results } = await env.BETS_DB.prepare("SELECT name, parties, ts, th FROM bets WHERE code = ? ORDER BY ts").bind(code).all();
+  return results.map(rowToBet);
 }
 
 // גיבוי זמני בזמן שהפרופגציה של KV משלימה (המפתח נכתב מחדש אחרי ניקוי מפתחות ישנים)
@@ -696,7 +698,7 @@ const GROUP_FALLBACKS = { Y7ZS9A6: { code: "Y7ZS9A6", name: "הדירה" } };
 
 async function getGroup(env, code) {
   if (code === GENERAL.code) return GENERAL;
-  const g = await env.BETS.get("grp:" + code, { type: "json", cacheTtl: 60 });
+  const g = await env.BETS_DB.prepare("SELECT code, name, ts FROM groups WHERE code = ?").bind(code).first();
   return g || GROUP_FALLBACKS[code] || null;
 }
 
@@ -711,9 +713,10 @@ export default {
       if (name.length < 2 || name.length > 30) return json({ error: "שם לא תקין" }, 400);
       for (let i = 0; i < 5; i++) {
         const code = newCode();
-        if (!(await env.BETS.get("grp:" + code))) {
+        const exists = await env.BETS_DB.prepare("SELECT 1 AS x FROM groups WHERE code = ?").bind(code).first();
+        if (!exists) {
           const g = { code, name, ts: Date.now() };
-          await env.BETS.put("grp:" + code, JSON.stringify(g));
+          await env.BETS_DB.prepare("INSERT INTO groups (code, name, ts) VALUES (?, ?, ?)").bind(code, name, g.ts).run();
           return json(g);
         }
       }
@@ -733,11 +736,10 @@ export default {
         return json({ bets: await readBets(env, code.toUpperCase()) });
       }
       const out = [{ code: GENERAL.code, name: GENERAL.name, bets: await readBets(env, GENERAL.code) }];
-      const seen = new Set();
-      const list = await env.BETS.list({ prefix: "grp:" });
-      for (const k of list.keys) {
-        const g = await env.BETS.get(k.name, { type: "json", cacheTtl: 60 });
-        if (g) { seen.add(g.code); out.push({ code: g.code, name: g.name, bets: await readBets(env, g.code) }); }
+      const seen = new Set([GENERAL.code]);
+      const { results: groups } = await env.BETS_DB.prepare("SELECT code, name FROM groups ORDER BY ts").all();
+      for (const g of groups) {
+        seen.add(g.code); out.push({ code: g.code, name: g.name, bets: await readBets(env, g.code) });
       }
       for (const g of Object.values(GROUP_FALLBACKS)) {
         if (!seen.has(g.code)) out.push({ code: g.code, name: g.name, bets: await readBets(env, g.code) });
@@ -753,18 +755,20 @@ export default {
       if (!(await getGroup(env, code))) return json({ error: "קבוצה לא קיימת" }, 404);
       const v = validBet(body);
       if (typeof v === "string") return json({ error: v }, 400);
-      const bets = await readBetsRaw(env, code);
-      const i = bets.findIndex(b => b.name === v.name);
       const token = String(body.token || "");
       const th = token ? await sha256hex(token) : "";
-      if (i >= 0) {
+      const partiesJson = JSON.stringify(v.clean);
+      // שורה אחת לכל הימור + עדכון/הוספה אטומיים - הימורים במקביל לא דורסים זה את זה
+      const existing = await env.BETS_DB.prepare("SELECT th FROM bets WHERE code = ? AND name = ?").bind(code, v.name).first();
+      if (existing) {
         // עריכה רק עם טוקן העריכה המקורי (השרת שומר רק גיבוב). הימורים ישנים ללא גיבוב נעולים לעריכה דרך ה-API.
-        if (!bets[i].th || bets[i].th !== th) return json({ error: 'השם "' + v.name + '" תפוס בקבוצה הזו - בחרו שם אחר' }, 409);
-        bets[i] = { name: v.name, parties: v.clean, th: bets[i].th, ts: Date.now() };
+        if (!existing.th || existing.th !== th) return json({ error: 'השם "' + v.name + '" תפוס בקבוצה הזו - בחרו שם אחר' }, 409);
+        const r = await env.BETS_DB.prepare("UPDATE bets SET parties = ?, ts = ? WHERE code = ? AND name = ? AND th = ?").bind(partiesJson, Date.now(), code, v.name, th).run();
+        if (!r.meta.changes) return json({ error: 'השם "' + v.name + '" תפוס בקבוצה הזו - בחרו שם אחר' }, 409);
       } else {
-        bets.push({ name: v.name, parties: v.clean, th, ts: Date.now() });
+        const r = await env.BETS_DB.prepare("INSERT OR IGNORE INTO bets (code, name, parties, ts, th) VALUES (?, ?, ?, ?, ?)").bind(code, v.name, partiesJson, Date.now(), th).run();
+        if (!r.meta.changes) return json({ error: 'השם "' + v.name + '" תפוס בקבוצה הזו - בחרו שם אחר' }, 409);
       }
-      await env.BETS.put(betsKey(code), JSON.stringify(bets));
       return json({ ok: true });
     }
 
