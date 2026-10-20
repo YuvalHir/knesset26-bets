@@ -352,6 +352,8 @@ function fitSlips() {
     while (fs > 5.5 && slp.scrollHeight > slp.clientHeight) { fs -= 0.5; t.style.fontSize = fs + "px"; }
   });
 }
+if (document.fonts && document.fonts.ready) { document.fonts.ready.then(() => fitSlips()); }
+window.addEventListener("load", () => fitSlips());
 
 const cards = $("#cards");
 PARTIES.forEach(p => {
