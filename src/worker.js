@@ -758,6 +758,6 @@ export default {
     }
 
     if (url.pathname === "/health") return json({ ok: true });
-    return new Response(HTML, { headers: { "content-type": "text/html; charset=utf-8" } });
+    return new Response(HTML, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
   },
 };
