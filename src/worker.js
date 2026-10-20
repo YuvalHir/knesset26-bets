@@ -5,37 +5,39 @@
 // קבוצות: כל אחד יכול לפתוח קבוצת מהמרים עם קוד בת 7 תווים; הימורים ישנים נשמרים בקבוצה הכללית.
 
 const PARTIES = [
-  { id: "yashar",     letter: "דרך", name: "ישר! עם איזנקוט",              color: "#0e9aa7", bloc: "center" },
-  { id: "likud",      letter: "מחל", name: "הליכוד",                        color: "#1f4e9c", bloc: "right"  },
-  { id: "beyahad",    letter: "רק",  name: "ביחד (בנט)",                   color: "#f28c28", bloc: "center" },
-  { id: "democratim", letter: "אמת", name: "הדמוקרטים",                    color: "#d6336c", bloc: "center" },
-  { id: "meshutefet", letter: "ודם", name: "הרשימה המשותפת",               color: "#157347", bloc: "arab"   },
-  { id: "shas",       letter: "שס",  name: 'ש"ס',                          color: "#a67c00", bloc: "right"  },
-  { id: "yahadut",    letter: "ג",   name: "יהדות התורה",                  color: "#25355f", bloc: "right"  },
-  { id: "tziyonut",   letter: "ט",   name: "הציונות הדתית-זהות",           color: "#365f91", bloc: "right"  },
-  { id: "otzma",      letter: "ב",   name: "עוצמה יהודית",                 color: "#6d2e2e", bloc: "right"  },
-  { id: "beiteinu",   letter: "ל",   name: "ישראל ביתנו",                  color: "#3b78c3", bloc: "center" },
-  { id: "raam",       letter: "עם",  name: 'רע"ם',                         color: "#2e9e5b", bloc: "arab"   },
-  { id: "winter",     letter: "ך",   name: "עמך ישראל (וינטר)",            color: "#7c6f64", bloc: "right", below: true },
-  { id: "miluim",     letter: "די",  name: "המילואימניקים והכלכלית (הנדל-זליכה)", color: "#0e7490", bloc: "none", below: true },
-  { id: "haredi",     letter: "זך",  name: "הציבור החרדי",                 color: "#4b5563", bloc: "right", below: true },
-  { id: "noam",       letter: "ני",  name: "נעם לישראל",                   color: "#5b21b6", bloc: "right", below: true },
+  { id: "yashar",     letter: "דרך", name: "ישר! עם איזנקוט",              color: "#0e9aa7", official: "ישר! עם איזנקוט לראשות הממשלה מאחדים את ישראל", bloc: "center" },
+  { id: "likud",      letter: "מחל", name: "הליכוד",                        color: "#1f4e9c", official: "הליכוד בהנהגת בנימין נתניהו לראשות הממשלה", bloc: "right"  },
+  { id: "beyahad",    letter: "רק",  name: "ביחד (בנט)",                   color: "#f28c28", official: "ביחד בראשות נפתלי בנט", bloc: "center" },
+  { id: "democratim", letter: "אמת", name: "הדמוקרטים",                    color: "#d6336c", official: "הדמוקרטים בראשות יאיר גולן", bloc: "center" },
+  { id: "meshutefet", letter: "ודם", name: "הרשימה המשותפת",               color: "#157347", official: "הרשימה המשותפת", bloc: "arab"   },
+  { id: "shas",       letter: "שס",  name: 'ש"ס',                          color: "#a67c00", official: "התאחדות הספרדים שומרי תורה תנועתו של מרן הרב עובדיה יוסף זצ״ל", bloc: "right"  },
+  { id: "yahadut",    letter: "ג",   name: "יהדות התורה",                  color: "#25355f", official: "יהדות התורה והשבת אגודת ישראל – דגל התורה", bloc: "right"  },
+  { id: "tziyonut",   letter: "ט",   name: "הציונות הדתית-זהות",           color: "#365f91", official: "הציונות הדתית בראשות בצלאל סמוטריץ׳ וזהות בראשות משה פייגלין", bloc: "right"  },
+  { id: "otzma",      letter: "ב",   name: "עוצמה יהודית",                 color: "#6d2e2e", official: "עוצמה יהודית בראשות איתמר בן גביר", bloc: "right"  },
+  { id: "beiteinu",   letter: "ל",   name: "ישראל ביתנו",                  color: "#3b78c3", official: "ישראל ביתנו בראשות אביגדור ליברמן", bloc: "center" },
+  { id: "raam",       letter: "עם",  name: 'רע"ם',                         color: "#2e9e5b", official: "רע״ם – הרשימה הערבית המאוחדת", bloc: "arab"   },
+  { id: "winter",     letter: "ך",   name: "עמך ישראל (וינטר)",            color: "#7c6f64", official: "עמך ישראל בראשות עופר וינטר", bloc: "right", below: true },
+  { id: "miluim",     letter: "די",  name: "המילואימניקים והכלכלית (הנדל-זליכה)", color: "#0e7490", official: "המילואימניקים והכלכלית בראשות יועז הנדל וירון זליכה", bloc: "none", below: true },
+  { id: "haredi",     letter: "זך",  name: "הציבור החרדי",                 color: "#4b5563", official: "הציבור החרדי בראשות מוטי ליטנר", bloc: "right", below: true },
+  { id: "noam",       letter: "ני",  name: "נעם לישראל",                   color: "#5b21b6", official: "נעם לישראל למען עתיד הילדים בראשות אבי מעוז", bloc: "right", below: true },
 ];
 
 const GENERAL = { code: "GENERAL", name: "הקבוצה הכללית" };
+// נעילת ההימורים: 27.10.2026 21:59 שעון ישראל (UTC+2, אחרי סיום שעון הקיץ ב-25.10)
+const BET_CLOSE = Date.parse("2026-10-27T21:59:00+02:00");
 
 const POLLS = [
   { id: "ch12", label: "חדשות 12", date: "19.10.26",
-    src: "https://www.ice.co.il/research/news/article/1134272",
+    src: "https://www.mako.co.il/news-israel-elections/2026/Article-a6eb664b9d451a1026.htm",
     seats: { yashar:24, likud:21, beyahad:14, democratim:9, meshutefet:9, shas:8, yahadut:7, tziyonut:7, otzma:8, beiteinu:8, raam:5, winter:0, miluim:0, haredi:0, noam:0 } },
   { id: "ch13", label: "חדשות 13", date: "19.10.26",
     src: "https://13tv.co.il/item/news/politics/politics/jw3wm-905406894/",
     seats: { yashar:20, likud:18, beyahad:14, democratim:9, meshutefet:9, shas:7, yahadut:7, tziyonut:7, otzma:7, beiteinu:8, raam:6, winter:4, miluim:4, haredi:0, noam:0 } },
   { id: "ch14", label: "ערוץ 14", date: "19.10.26",
-    src: "https://www.ice.co.il/research/news/article/1134270",
+    src: "https://www.now14.co.il/%D7%A1%D7%A7%D7%A8-%D7%A2%D7%9B%D7%A9%D7%99%D7%95-14-%D7%92%D7%95%D7%A9-%D7%94%D7%99%D7%9E%D7%99%D7%9F-%D7%A2%D7%9D-62-%D7%9E%D7%A0%D7%93%D7%98%D7%99%D7%9D-%D7%9B%D7%99%D7%A6%D7%93-%D7%AA%D7%A9/",
     seats: { yashar:19, likud:30, beyahad:10, democratim:10, meshutefet:8, shas:10, yahadut:8, tziyonut:7, otzma:7, beiteinu:6, raam:5, winter:0, miluim:0, haredi:0, noam:0 } },
   { id: "kan", label: "כאן 11", date: "18.10.26",
-    src: "https://www.skarim.org/polls/kan-news-2026-10-18",
+    src: "https://www.kan.org.il/content/kan-news/politic/1110393/",
     seats: { yashar:23, likud:21, beyahad:12, democratim:9, meshutefet:8, shas:8, yahadut:7, tziyonut:7, otzma:8, beiteinu:8, raam:5, winter:0, miluim:4, haredi:0, noam:0 } },
   { id: "i24", label: "i24NEWS", date: "18.10.26",
     src: "https://www.i24news.tv/he/news/israel-elections-2026/polls/artc-81805",
@@ -187,7 +189,8 @@ const HTML = `<!DOCTYPE html>
   <div class="counter">
     <div class="nums"><span>חולקו: <span id="used">0</span></span><span id="left">נותרו 120</span></div>
     <div class="bar" id="bar"><div style="width:0%"></div></div>
-    <div class="hint">אי אפשר לעבור את ה-120 — והשליחה נפתחת רק כשחילקתם בדיוק 120.</div>
+    <div class="hint">אי אפשר לעבור את ה-120 — והשליחה נפתחת רק כשחילקתם בדיוק 120. אפשר לעדכן את ההימור עד הסגירה.</div>
+    <div class="hint" id="countdown" style="font-weight:700;color:var(--bluedark)"></div>
   </div>
   <div class="pollbox">
     <div class="ptitle">🗞️ סקר לייחוס</div>
@@ -230,6 +233,7 @@ const HTML = `<!DOCTYPE html>
 const PARTIES = ${JSON.stringify(PARTIES)};
 const POLLS = ${JSON.stringify(POLLS)};
 const GENERAL = ${JSON.stringify(GENERAL)};
+const BET_CLOSE = ${'Date.parse("2026-10-27T21:59:00+02:00")'};
 const $ = (s) => document.querySelector(s);
 const state = {};
 PARTIES.forEach(p => state[p.id] = 0);
@@ -328,7 +332,7 @@ PARTIES.forEach(p => {
   el.className = "card"; el.dataset.id = p.id;
   el.style.setProperty("--pc", p.color);
   el.innerHTML =
-    '<div class="slip"><div class="letters">' + p.letter + '</div><div class="tiny">' + p.name + '</div></div>' +
+    '<div class="slip"><div class="letters">' + p.letter + '</div><div class="tiny">' + p.official + '</div></div>' +
     '<div class="info"><div class="pname">' + p.name +
       (p.below ? '<span class="below">קרוב לאחוז החסימה</span>' : '') +
       '<span class="pollref" data-id="' + p.id + '"></span>' +
@@ -363,6 +367,19 @@ $("#fillpoll").addEventListener("click", () => {
   $("#msg").textContent = "מולא מסקר " + poll.label + " - אפשר לערוך ולשלוח ✍️";
 });
 
+function tickClose() {
+  const left = BET_CLOSE - Date.now();
+  if (left <= 0) {
+    $("#countdown").textContent = "ההימורים נסגרו 🔒";
+    $("#submit").disabled = true; $("#submit").textContent = "ההימורים נסגרו 🔒";
+    $("#fillpoll").disabled = true;
+    return;
+  }
+  const d = Math.floor(left/86400000), h = Math.floor(left%86400000/3600000), m = Math.floor(left%3600000/60000), sec = Math.floor(left%60000/1000);
+  $("#countdown").textContent = "⏳ נעילת ההימורים: " + d + " ימים, " + h + " שעות, " + m + " דקות ו-" + sec + " שניות (27.10, 21:59)";
+}
+setInterval(tickClose, 1000); tickClose();
+
 $("#bettor").value = localStorage.getItem("bettor") || "";
 $("#bettor").addEventListener("input", render);
 render();
@@ -377,6 +394,7 @@ async function send(overwrite) {
     if (confirm('כבר הימרת בקבוצה הזו בשם "' + name + '". לדרוס את ההימור הקודם?')) return send(true);
     return;
   }
+  if (res.status === 403) { $("#msg").textContent = "ההימורים נסגרו 🔒"; tickClose(); return; }
   if (!res.ok) { $("#msg").textContent = "משהו השתבש, נסו שוב 😕"; return; }
   localStorage.setItem("bettor", name);
   $("#msg").textContent = "נשמר! עוברים להשוואה… 🎉";
@@ -568,6 +586,7 @@ export default {
     if (url.pathname === "/api/bet" && request.method === "POST") {
       let body;
       try { body = await request.json(); } catch { return json({ error: "json" }, 400); }
+      if (Date.now() > BET_CLOSE) return json({ error: "ההימורים נסגרו" }, 403);
       const code = String(body.code || "").toUpperCase();
       if (!(await getGroup(env, code))) return json({ error: "קבוצה לא קיימת" }, 404);
       const v = validBet(body);
