@@ -586,15 +586,15 @@ function validBet(body) {
   return { name, clean };
 }
 
-const betsKey = (code) => "bets:" + code;
+const betsKey = (code) => "b2:" + code;
 
 async function readBets(env, code) {
-  return (await env.BETS.get(betsKey(code), "json")) || [];
+  return (await env.BETS.get(betsKey(code), { type: "json", cacheTtl: 60 })) || [];
 }
 
 async function getGroup(env, code) {
   if (code === GENERAL.code) return GENERAL;
-  return await env.BETS.get("group:" + code, "json");
+  return await env.BETS.get("grp:" + code, { type: "json", cacheTtl: 60 });
 }
 
 export default {
@@ -608,9 +608,9 @@ export default {
       if (name.length < 2 || name.length > 30) return json({ error: "שם לא תקין" }, 400);
       for (let i = 0; i < 5; i++) {
         const code = newCode();
-        if (!(await env.BETS.get("group:" + code))) {
+        if (!(await env.BETS.get("grp:" + code))) {
           const g = { code, name, ts: Date.now() };
-          await env.BETS.put("group:" + code, JSON.stringify(g));
+          await env.BETS.put("grp:" + code, JSON.stringify(g));
           return json(g);
         }
       }
@@ -630,9 +630,9 @@ export default {
         return json({ bets: await readBets(env, code.toUpperCase()) });
       }
       const out = [{ code: GENERAL.code, name: GENERAL.name, bets: await readBets(env, GENERAL.code) }];
-      const list = await env.BETS.list({ prefix: "group:" });
+      const list = await env.BETS.list({ prefix: "grp:" });
       for (const k of list.keys) {
-        const g = await env.BETS.get(k.name, "json");
+        const g = await env.BETS.get(k.name, { type: "json", cacheTtl: 60 });
         if (g) out.push({ code: g.code, name: g.name, bets: await readBets(env, g.code) });
       }
       return json({ groups: out });
