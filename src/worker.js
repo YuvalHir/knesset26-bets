@@ -17,8 +17,8 @@ const PARTIES = [
   { id: "beiteinu",   letter: "ל",   name: "ישראל ביתנו",                  color: "#3b78c3", official: "ישראל ביתנו בראשות אביגדור ליברמן", bloc: "center" },
   { id: "raam",       letter: "עם",  name: 'רע"ם',                         color: "#2e9e5b", official: "רע״ם – הרשימה הערבית המאוחדת", bloc: "arab"   },
   { id: "winter",     letter: "ך",   name: "עמך ישראל (וינטר)",            color: "#7c6f64", official: "עמך ישראל בראשות עופר וינטר", bloc: "right", below: true },
-  { id: "miluim",     letter: "די",  name: "המילואימניקים והכלכלית (הנדל-זליכה)", color: "#0e7490", official: "המילואימניקים והכלכלית בראשות יועז הנדל וירון זליכה", bloc: "none", below: true },
-  { id: "haredi",     letter: "זך",  name: "הציבור החרדי",                 color: "#4b5563", official: "הציבור החרדי בראשות מוטי ליטנר", bloc: "right", below: true },
+  { id: "miluim",     letter: "די",  name: "המילואימניקים והכלכלית (הנדל-זליכה)", color: "#0e7490", official: "המילואימניקים והכלכלית בראשות יועז הנדל וירון זליכה", bloc: "miluim", below: true },
+  { id: "haredi",     letter: "זך",  name: "הציבור החרדי",                 color: "#4b5563", official: "הציבור החרדי בראשות מוטי ליטנר", bloc: "haredi", below: true },
   { id: "noam",       letter: "ני",  name: "נעם לישראל",                   color: "#5b21b6", official: "נעם לישראל למען עתיד הילדים בראשות אבי מעוז", bloc: "right", below: true },
 ];
 
@@ -54,7 +54,7 @@ const POLLS = [
     seats: { yashar:22, likud:20, beyahad:13, democratim:10, meshutefet:8, shas:7, yahadut:8, tziyonut:6, otzma:8, beiteinu:9, raam:5, winter:0, miluim:4, haredi:0, noam:0 } },
 ];
 
-const BLOC_LABELS = { right: "קואליציה", center: "אופוזיציה", arab: "המפלגות הערביות", none: "עוד לא ברור" };
+const BLOC_LABELS = { right: "קואליציה", center: "אופוזיציה", arab: "מפלגות ערביות", haredi: "הציבור החרדי", miluim: "הנדל-זליכה" };
 
 const HTML = `<!DOCTYPE html>
 <html lang="he" dir="rtl">
@@ -96,7 +96,9 @@ const HTML = `<!DOCTYPE html>
   .bar > div { height:100%; transition:width .15s; }
   .bar .seg-r { background:#1f4e9c; }
   .bar .seg-c { background:#0e9aa7; }
-  .bar .seg-u { background:#b7a96b; }
+  .bar .seg-a { background:#157347; }
+  .bar .seg-h { background:#4b5563; }
+  .bar .seg-m { background:#b7a96b; }
   .legend { display:flex; justify-content:center; gap:14px; margin-top:5px; font-size:11.5px; color:#5a627a; flex-wrap:wrap; }
   .legend i { display:inline-block; width:9px; height:9px; border-radius:3px; margin-left:4px; vertical-align:-1px; }
   .hint { font-size:14px; opacity:.7; margin-top:6px; }
@@ -112,6 +114,7 @@ const HTML = `<!DOCTYPE html>
   .blocstrip b { font-weight:900; }
   .bloc61 { font-size:11.5px; font-weight:500; opacity:.6; }
   .smallstrip { margin-top:6px; font-size:12px; color:#5a627a; text-align:center; }
+  .editmode { background:#fff7e0; border:1px solid #f0df9a; color:#8a6d00; border-radius:12px; padding:8px 12px; font-size:13.5px; font-weight:700; margin-bottom:10px; text-align:center; }
   .name-row { display:flex; gap:8px; margin-bottom:14px; }
   .name-row input { flex:1; font-family:inherit; font-size:17px; padding:12px 14px; border-radius:14px; border:2px solid #c7d5f7; background:#fff; }
   .card { background:#fff; border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:0 2px 10px rgba(16,27,60,.07); display:flex; align-items:center; gap:14px; border:1px solid #e7edff; }
@@ -151,7 +154,8 @@ const HTML = `<!DOCTYPE html>
   .c-right { background:#dbe7ff; color:#1f4e9c; }
   .c-center { background:#ffe6ef; color:#d6336c; }
   .c-arab { background:#dff3e8; color:#157347; }
-  .c-none { background:#eee; color:#555; }
+  .c-haredi { background:#e5e7eb; color:#374151; }
+  .c-miluim { background:#f3ecd4; color:#8a7a2e; }
   .c-61 { background:var(--bluedark); color:#fff; }
   .bet .detail { display:none; margin-top:10px; border-top:1px dashed #c7d5f7; padding-top:10px; font-size:14px; }
   .bet.open .detail { display:block; }
@@ -209,10 +213,9 @@ const HTML = `<!DOCTYPE html>
 <div class="wrap" id="view-bet">
   <div class="counter">
     <div class="nums"><span>חולקו: <span id="used">0</span></span><span id="left">נותרו 120</span></div>
-    <div class="bar" id="bar"><div class="seg-r" style="width:0%"></div><div class="seg-c" style="width:0%"></div><div class="seg-u" style="width:0%"></div></div>
-    <div class="legend"><span><i style="background:#1f4e9c"></i>קואליציה</span><span><i style="background:#0e9aa7"></i>אופוזיציה</span><span><i style="background:#b7a96b"></i>עוד לא ברור (ערביות/קטנות)</span></div>
+    <div class="bar" id="bar"><div class="seg-r" style="width:0%"></div><div class="seg-c" style="width:0%"></div><div class="seg-a" style="width:0%"></div><div class="seg-h" style="width:0%"></div><div class="seg-m" style="width:0%"></div></div>
+    <div class="legend"><span><i style="background:#1f4e9c"></i>קואליציה</span><span><i style="background:#0e9aa7"></i>אופוזיציה</span><span><i style="background:#157347"></i>מפלגות ערביות</span><span><i style="background:#4b5563"></i>הציבור החרדי</span><span><i style="background:#b7a96b"></i>הנדל-זליכה</span></div>
     <div class="blocstrip" id="blocstrip"></div>
-    <div class="smallstrip" id="smallstrip"></div>
     <div class="hint">אי אפשר לעבור את ה-120 — והשליחה נפתחת רק כשחילקתם בדיוק 120. אפשר לעדכן את ההימור עד הסגירה.</div>
     <div class="hint" id="countdown" style="font-weight:700;color:var(--bluedark)"></div>
   </div>
@@ -222,6 +225,7 @@ const HTML = `<!DOCTYPE html>
     <div class="pollmeta" id="pollmeta"></div>
     <button class="fillbtn" id="fillpoll">מלאו את הסליידרים מהסקר 🎯</button>
   </div>
+  <div class="editmode hidden" id="editmode">✏️ עריכת ההימור שלך - מולא מההימור הקודם שלך במכשיר הזה</div>
   <div class="name-row">
     <input id="bettor" maxlength="24" placeholder="השם שלכם (כדי שיכירו את ההימור)">
   </div>
@@ -287,6 +291,21 @@ async function enterGroup(g) {
   $("#view-gate").classList.add("hidden");
   $("#main").classList.remove("hidden");
   history.replaceState(null, "", "?g=" + g.code);
+  loadMyBet();
+}
+
+// זיהוי חוזר: אם במכשיר הזה כבר הימרו בקבוצה הזו - ממלאים את ההימור הקודם לעריכה
+async function loadMyBet() {
+  const myName = localStorage.getItem("bettor:" + group.code);
+  if (!myName) return;
+  try {
+    const r = await api("/api/bets?code=" + encodeURIComponent(group.code));
+    const mine = (((r.data && r.data.bets) || [])).find(b => b.name === myName);
+    if (!mine) return;
+    PARTIES.forEach(p => state[p.id] = mine.parties[p.id] || 0);
+    $("#bettor").value = myName;
+    render();
+  } catch (e) {}
 }
 function leaveGroup() {
   group = null;
@@ -336,18 +355,23 @@ function render() {
   const t = total(), left = 120 - t;
   $("#used").textContent = t;
   $("#left").textContent = left > 0 ? "נותרו " + left : (left === 0 ? "בדיוק 120! ✔" : "חריגה!");
-  const blocs = { right: 0, center: 0, arab: 0 };
-  PARTIES.forEach(p => { if (p.bloc !== "none") blocs[p.bloc] += state[p.id] || 0; });
+  const blocs = blocSums(state);
   $("#blocstrip").innerHTML =
     '<span style="color:#1f4e9c">קואליציה: <b>' + blocs.right + '</b> <span class="bloc61">' + (blocs.right >= 61 ? "יש רוב ✔" : "מתוך 61 לרוב") + '</span></span>' +
     '<span style="color:#0e9aa7">אופוזיציה: <b>' + blocs.center + '</b></span>' +
-    '<span style="color:#157347">המפלגות הערביות: <b>' + blocs.arab + '</b></span>';
-  const shortNames = { winter: "וינטר", miluim: "הנדל-זליכה", haredi: "הציבור החרדי", noam: "נעם לישראל" };
-  $("#smallstrip").textContent = "מפלגות קטנות: " + PARTIES.filter(p => p.below).map(p => (shortNames[p.id] || p.name) + " " + (state[p.id] || 0)).join(" · ");
+    '<span style="color:#157347">מפלגות ערביות: <b>' + blocs.arab + '</b></span>' +
+    '<span style="color:#4b5563">הציבור החרדי: <b>' + blocs.haredi + '</b></span>' +
+    '<span style="color:#8a7a2e">הנדל-זליכה: <b>' + blocs.miluim + '</b></span>';
   const segs = $("#bar").children;
   segs[0].style.width = (blocs.right/120*100) + "%";
   segs[1].style.width = (blocs.center/120*100) + "%";
-  segs[2].style.width = ((t - blocs.right - blocs.center)/120*100) + "%";
+  segs[2].style.width = (blocs.arab/120*100) + "%";
+  segs[3].style.width = (blocs.haredi/120*100) + "%";
+  segs[4].style.width = (blocs.miluim/120*100) + "%";
+  const myName = group ? localStorage.getItem("bettor:" + group.code) : null;
+  const editing = myName && $("#bettor").value.trim() === myName;
+  $("#editmode").classList.toggle("hidden", !editing);
+  if (Date.now() < BET_CLOSE) $("#submit").textContent = editing ? "עדכון ההימור שלי ✏️" : "חילקתם 120? שלחו את ההימור 🚀";
   $("#submit").disabled = !(t === 120 && $("#bettor").value.trim().length >= 2);
   document.querySelectorAll(".card").forEach(c => {
     const id = c.dataset.id, v = state[id];
@@ -441,30 +465,40 @@ function tickClose() {
 }
 setInterval(tickClose, 1000); tickClose();
 
-$("#bettor").value = localStorage.getItem("bettor") || "";
 $("#bettor").addEventListener("input", render);
 render();
 
-async function send(overwrite) {
+async function send() {
   const name = $("#bettor").value.trim();
+  const myName = localStorage.getItem("bettor:" + group.code);
+  let overwrite = false;
+  if (name === myName) {
+    overwrite = true; // אותו מהמר על אותו מכשיר - עריכה של ההימור הקודם
+  } else {
+    try {
+      const r = await api("/api/bets?code=" + encodeURIComponent(group.code));
+      if ((((r.data && r.data.bets) || []).some(b => b.name === name))) {
+        $("#msg").textContent = 'השם "' + name + '" כבר תפוס בקבוצה הזו - בחרו שם אחר ✋';
+        return;
+      }
+    } catch (e) {}
+  }
   const res = await fetch("/api/bet", {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ code: group.code, name, parties: state, overwrite })
   });
-  if (res.status === 409) {
-    if (confirm('כבר הימרת בקבוצה הזו בשם "' + name + '". לדרוס את ההימור הקודם?')) return send(true);
-    return;
-  }
+  if (res.status === 409) { $("#msg").textContent = 'השם "' + name + '" כבר תפוס בקבוצה הזו - בחרו שם אחר ✋'; return; }
   if (res.status === 403) { $("#msg").textContent = "ההימורים נסגרו 🔒"; tickClose(); return; }
   if (!res.ok) { $("#msg").textContent = "משהו השתבש, נסו שוב 😕"; return; }
-  localStorage.setItem("bettor", name);
+  localStorage.setItem("bettor:" + group.code, name);
+  render();
   $("#msg").textContent = "נשמר! עוברים להשוואה… 🎉";
   setTimeout(() => switchTab("stats"), 800);
 }
-$("#submit").addEventListener("click", () => send(false));
+$("#submit").addEventListener("click", () => send());
 
 function blocSums(parties) {
-  const s = { right:0, center:0, arab:0, none:0 };
+  const s = { right:0, center:0, arab:0, haredi:0, miluim:0 };
   for (const p of PARTIES) s[p.bloc] += parties[p.id] || 0;
   return s;
 }
@@ -475,7 +509,7 @@ function renderStatCards(el, bets) {
     el.innerHTML = '<div class="stat"><b>אין עדיין הימורים</b><span>היו הראשונים!</span></div>';
     return null;
   }
-  const avg = {}, bavg = { right:0, center:0, arab:0, none:0 };
+  const avg = {}, bavg = { right:0, center:0, arab:0, haredi:0, miluim:0 };
   PARTIES.forEach(p => avg[p.id] = 0);
   bets.forEach(b => {
     PARTIES.forEach(p => avg[p.id] += (b.parties[p.id] || 0) / bets.length);
@@ -488,6 +522,8 @@ function renderStatCards(el, bets) {
     '<div class="stat"><b>' + Math.round(bavg.right) + '</b><span>קואליציה (ממוצע)</span></div>' +
     '<div class="stat"><b>' + Math.round(bavg.center) + '</b><span>אופוזיציה (ממוצע)</span></div>' +
     '<div class="stat"><b>' + Math.round(bavg.arab) + '</b><span>מפלגות ערביות (ממוצע)</span></div>' +
+    (bavg.haredi > 0 ? '<div class="stat"><b>' + Math.round(bavg.haredi) + '</b><span>הציבור החרדי (ממוצע)</span></div>' : '') +
+    (bavg.miluim > 0 ? '<div class="stat"><b>' + Math.round(bavg.miluim) + '</b><span>הנדל-זליכה (ממוצע)</span></div>' : '') +
     '<div class="stat"><b>' + sorted[0].name + '</b><span>המפלגה הגדולה בממוצע</span></div>';
   return { avg, sorted };
 }
@@ -518,7 +554,8 @@ function renderBets(el, bets, showGroup) {
       '<span class="chip c-right">קואליציה ' + bs.right + '</span>' +
       '<span class="chip c-center">אופוזיציה ' + bs.center + '</span>' +
       '<span class="chip c-arab">ערביות ' + bs.arab + '</span>' +
-      (bs.none ? '<span class="chip c-none">עוד לא ברור ' + bs.none + '</span>' : '') +
+      (bs.haredi ? '<span class="chip c-haredi">הציבור החרדי ' + bs.haredi + '</span>' : '') +
+      (bs.miluim ? '<span class="chip c-miluim">הנדל-זליכה ' + bs.miluim + '</span>' : '') +
       badge61 +
       '<span class="when">' + new Date(b.ts).toLocaleString("he-IL") + '</span></div>' +
       '<div class="detail">' + PARTIES.filter(p => (b.parties[p.id]||0) > 0)
