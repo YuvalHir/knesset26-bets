@@ -598,9 +598,13 @@ async function readBets(env, code) {
   return (await env.BETS.get(betsKey(code), { type: "json", cacheTtl: 60 })) || [];
 }
 
+// גיבוי זמני בזמן שהפרופגציה של KV משלימה (המפתח נכתב מחדש אחרי ניקוי מפתחות ישנים)
+const GROUP_FALLBACKS = { Y7ZS9A6: { code: "Y7ZS9A6", name: "הדירה" } };
+
 async function getGroup(env, code) {
   if (code === GENERAL.code) return GENERAL;
-  return await env.BETS.get("grp:" + code, { type: "json", cacheTtl: 60 });
+  const g = await env.BETS.get("grp:" + code, { type: "json", cacheTtl: 60 });
+  return g || GROUP_FALLBACKS[code] || null;
 }
 
 export default {
@@ -636,10 +640,14 @@ export default {
         return json({ bets: await readBets(env, code.toUpperCase()) });
       }
       const out = [{ code: GENERAL.code, name: GENERAL.name, bets: await readBets(env, GENERAL.code) }];
+      const seen = new Set();
       const list = await env.BETS.list({ prefix: "grp:" });
       for (const k of list.keys) {
         const g = await env.BETS.get(k.name, { type: "json", cacheTtl: 60 });
-        if (g) out.push({ code: g.code, name: g.name, bets: await readBets(env, g.code) });
+        if (g) { seen.add(g.code); out.push({ code: g.code, name: g.name, bets: await readBets(env, g.code) }); }
+      }
+      for (const g of Object.values(GROUP_FALLBACKS)) {
+        if (!seen.has(g.code)) out.push({ code: g.code, name: g.name, bets: await readBets(env, g.code) });
       }
       return json({ groups: out });
     }
