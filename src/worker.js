@@ -187,6 +187,12 @@ const HTML = `<!DOCTYPE html>
       <button id="joing">הצטרף</button>
       <div class="err" id="joinerr"></div>
     </div>
+    <div class="or">או</div>
+    <div class="gcard">
+      <h2>הימור בלי קבוצה 🗳️</h2>
+      <p>ההימור שלך יופיע בעמוד הכללי של כל המהמרים</p>
+      <button id="nogroup">מהמרים בלי קבוצה</button>
+    </div>
   </div>
 </div>
 
@@ -299,6 +305,7 @@ $("#createg").addEventListener("click", async () => {
   if (!r.ok) { $("#createerr").textContent = "משהו השתבש, נסו שוב"; return; }
   enterGroup(r.data);
 });
+$("#nogroup").addEventListener("click", () => enterGroup(GENERAL));
 $("#joing").addEventListener("click", async () => {
   const code = $("#joincode").value.trim().toUpperCase();
   if (code.length !== 7) { $("#joinerr").textContent = "הקוד בן 7 תווים"; return; }
