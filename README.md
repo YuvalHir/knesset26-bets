@@ -24,8 +24,7 @@ npx wrangler kv namespace create BETS   # לעדכן את ה-id ב-wrangler.toml
 npx wrangler deploy
 ```
 
-פריסה אוטומטית מ-GitHub: יש workflow מוכן ב-`.github/workflows/deploy.yml`.
-צריך סוד `CLOUDFLARE_API_TOKEN` בהגדרות הרפו (Workers:Edit) ו-`CLOUDFLARE_ACCOUNT_ID`.
+פריסה אוטומטית מ-GitHub: אפשר לחבר את הרפו ל-Workers Builds בדשבורד של Cloudflare, או להוסיף GitHub Action עם סוד `CLOUDFLARE_API_TOKEN`.
 
 ## רישיון
 
