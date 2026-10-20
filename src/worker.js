@@ -54,9 +54,9 @@ const POLLS = [
   { id: "i24", label: "i24NEWS", date: "18.10.26",
     src: "https://www.i24news.tv/he/news/israel-elections-2026/polls/artc-81805",
     seats: { yashar:21, likud:25, beyahad:13, democratim:9, meshutefet:8, shas:8, yahadut:8, tziyonut:6, otzma:10, beiteinu:6, raam:6, winter:0, miluim:0, haredi:0, noam:0 } },
-  { id: "walla", label: "וואלה", date: "13.10.26",
-    src: "https://www.walla.co.il/news/politics/383957251",
-    seats: { yashar:22, likud:20, beyahad:13, democratim:10, meshutefet:8, shas:7, yahadut:8, tziyonut:6, otzma:8, beiteinu:9, raam:5, winter:0, miluim:4, haredi:0, noam:0 } },
+  { id: "walla", label: "וואלה", date: "20.10.26",
+    src: "https://www.walla.co.il/news/politics/383958175",
+    seats: { yashar:23, likud:19, beyahad:14, democratim:9, meshutefet:8, shas:8, yahadut:7, tziyonut:6, otzma:8, beiteinu:8, raam:6, winter:0, miluim:4, haredi:0, noam:0 } },
 ];
 
 const BLOC_LABELS = { right: "קואליציה", center: "אופוזיציה", arab: "מפלגות ערביות", haredi: "הציבור החרדי", miluim: "הנדל-זליכה" };
