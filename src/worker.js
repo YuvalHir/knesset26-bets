@@ -23,8 +23,15 @@ const PARTIES = [
 ];
 
 const GENERAL = { code: "GENERAL", name: "הקבוצה הכללית" };
-// נעילת ההימורים: 27.10.2026 21:59 שעון ישראל (UTC+2, אחרי סיום שעון הקיץ ב-25.10)
-const BET_CLOSE = Date.parse("2026-10-27T21:59:00+02:00");
+// נעילת ההימורים: 27.10.2026 21:59 שעון ישראל - מחושב דינמית לפי Asia/Jerusalem (כולל שעון קיץ/חורף)
+function jerusalemUtcMs(y, mo, d, h, mi) {
+  const guess = Date.UTC(y, mo - 1, d, h, mi) - 2 * 3600e3; // ישראל היא UTC+2/+3
+  const fmt = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Jerusalem", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const parts = Object.fromEntries(fmt.formatToParts(new Date(guess)).filter(p => p.type !== "literal").map(p => [p.type, +p.value]));
+  const localAsUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute);
+  return guess + (Date.UTC(y, mo - 1, d, h, mi) - localAsUtc);
+}
+const BET_CLOSE = jerusalemUtcMs(2026, 10, 27, 21, 59);
 
 const POLLS = [
   { id: "ch12", label: "חדשות 12", date: "19.10.26",
@@ -102,9 +109,9 @@ const HTML = `<!DOCTYPE html>
   .card { background:#fff; border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:0 2px 10px rgba(16,27,60,.07); display:flex; align-items:center; gap:14px; border:1px solid #e7edff; }
   .slip { flex:none; width:72px; height:88px; border-radius:6px; background:linear-gradient(#ffffff,#f7f5ec);
     border:1px solid #cfcaba; box-shadow:0 2px 5px rgba(0,0,0,.12), inset 0 0 0 2px #fff;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; transform:rotate(-2deg); }
+    display:flex; flex-direction:column; align-items:center; justify-content:center; transform:rotate(-2deg); overflow:hidden; }
   .slip .letters { font-weight:900; font-size:27px; color:var(--blue); letter-spacing:1px; }
-  .slip .tiny { font-size:9.5px; color:#8a8571; text-align:center; padding:0 4px; margin-top:3px; line-height:1.15; }
+  .slip .tiny { font-size:9.5px; color:#8a8571; text-align:center; padding:0 5px; margin-top:3px; line-height:1.15; max-width:100%; }
   .info { flex:1; min-width:0; }
   .pname { font-weight:700; font-size:16px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .pollref { font-size:12px; font-weight:500; opacity:.55; }
@@ -233,7 +240,15 @@ const HTML = `<!DOCTYPE html>
 const PARTIES = ${JSON.stringify(PARTIES)};
 const POLLS = ${JSON.stringify(POLLS)};
 const GENERAL = ${JSON.stringify(GENERAL)};
-const BET_CLOSE = ${'Date.parse("2026-10-27T21:59:00+02:00")'};
+function jerusalemUtcMs(y, mo, d, h, mi) {
+  const guess = Date.UTC(y, mo - 1, d, h, mi) - 2 * 3600e3;
+  const fmt = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Jerusalem", hour12: false, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+  const parts = Object.fromEntries(fmt.formatToParts(new Date(guess)).filter(p => p.type !== "literal").map(p => [p.type, +p.value]));
+  const localAsUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute);
+  return guess + (Date.UTC(y, mo - 1, d, h, mi) - localAsUtc);
+}
+const BET_CLOSE = jerusalemUtcMs(2026, 10, 27, 21, 59);
+const CLOSE_STR = new Intl.DateTimeFormat("he-IL", { timeZone: "Asia/Jerusalem", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(BET_CLOSE);
 const $ = (s) => document.querySelector(s);
 const state = {};
 PARTIES.forEach(p => state[p.id] = 0);
@@ -316,6 +331,7 @@ function render() {
     const s = pollSeats(el.dataset.id);
     el.textContent = s ? ("סקר: " + s) : "מתחת לאחוז החסימה בסקר";
   });
+  fitSlips();
 }
 
 function setVal(id, v) {
@@ -324,6 +340,17 @@ function setVal(id, v) {
   if (others + v > 120) v = 120 - others; // חסימה קשיחה: אי אפשר לעבור 120
   state[id] = v;
   render();
+}
+
+
+function fitSlips() {
+  document.querySelectorAll(".slip").forEach(slp => {
+    const t = slp.querySelector(".tiny");
+    if (!t) return;
+    let fs = 9.5;
+    t.style.fontSize = fs + "px";
+    while (fs > 5.5 && slp.scrollHeight > slp.clientHeight) { fs -= 0.5; t.style.fontSize = fs + "px"; }
+  });
 }
 
 const cards = $("#cards");
@@ -376,7 +403,7 @@ function tickClose() {
     return;
   }
   const d = Math.floor(left/86400000), h = Math.floor(left%86400000/3600000), m = Math.floor(left%3600000/60000), sec = Math.floor(left%60000/1000);
-  $("#countdown").textContent = "⏳ נעילת ההימורים: " + d + " ימים, " + h + " שעות, " + m + " דקות ו-" + sec + " שניות (27.10, 21:59)";
+  $("#countdown").textContent = "⏳ נעילת ההימורים: " + d + " ימים, " + h + " שעות, " + m + " דקות ו-" + sec + " שניות (" + CLOSE_STR + " שעון ישראל)";
 }
 setInterval(tickClose, 1000); tickClose();
 
