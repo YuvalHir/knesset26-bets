@@ -188,7 +188,7 @@ const HTML = `<!DOCTYPE html>
     <div class="gcard">
       <h2>פתיחת קבוצת מהמרים 👥</h2>
       <p>תקבלו קוד לשיתוף החברים</p>
-      <input id="newgname" maxlength="30" placeholder="שם הקבוצה (למשל: החברים של יובל)">
+      <input id="newgname" maxlength="30" placeholder="שם הקבוצה">
       <button id="createg">צור קבוצה</button>
       <div class="err" id="createerr"></div>
     </div>
