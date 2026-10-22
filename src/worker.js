@@ -39,9 +39,9 @@ function jerusalemUtcMs(y, mo, d, h, mi) {
 const BET_CLOSE = jerusalemUtcMs(2026, 10, 27, 21, 59);
 
 const POLLS = [
-  { id: "ch12", label: "חדשות 12", date: "19.10.26",
-    src: "https://www.mako.co.il/news-israel-elections/2026/Article-a6eb664b9d451a1026.htm",
-    seats: { yashar:24, likud:21, beyahad:14, democratim:9, meshutefet:9, shas:8, yahadut:7, tziyonut:7, otzma:8, beiteinu:8, raam:5, winter:0, miluim:0, haredi:0, noam:0 } },
+  { id: "ch12", label: "חדשות 12", date: "21.10.26",
+    src: "https://www.mako.co.il/news-israel-elections/2026/Article-bf175ad340f51a1027.htm",
+    seats: { yashar:23, likud:19, beyahad:15, democratim:9, meshutefet:9, shas:8, yahadut:7, tziyonut:6, otzma:7, beiteinu:8, raam:5, winter:4, miluim:0, haredi:0, noam:0 } },
   { id: "ch13", label: "חדשות 13", date: "19.10.26",
     src: "https://13tv.co.il/item/news/politics/politics/jw3wm-905406894/",
     seats: { yashar:20, likud:18, beyahad:14, democratim:9, meshutefet:9, shas:7, yahadut:7, tziyonut:7, otzma:7, beiteinu:8, raam:6, winter:4, miluim:4, haredi:0, noam:0 } },
