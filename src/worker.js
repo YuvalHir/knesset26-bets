@@ -648,7 +648,7 @@ function scoreBet(bet, res) {
     err += (1 + r / 20) * Math.abs(b - r);
     if ((b === 0) !== (r === 0)) err += 5;
   }
-  return Math.max(0, Math.round(100 - err));
+  return 100 - err;
 }
 
 function renderResults(mb, gflat) {
@@ -671,12 +671,12 @@ function renderResults(mb, gflat) {
     let rank = 0, prev = null;
     const note = SCORING_APPROVED ? "" : ' <span class="tiny">(שיטת ניקוד מוצעת, טרם אושרה - אין הכרזת מנצח)</span>';
     return "<h3>" + title + note + "</h3>" + ranked.map((b, i) => {
-      if (prev === null || b.score !== prev) { rank = i + 1; prev = b.score; }
+      if (prev === null || Math.abs(b.score - prev) > 1e-9) { rank = i + 1; prev = b.score; }
       const medal = !SCORING_APPROVED ? rank + "."
         : (rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank + ".");
       return '<div class="lrow' + (SCORING_APPROVED && rank === 1 ? " win" : "") + '"><span class="rank">' + medal + '</span>' +
         '<span class="lname">' + escapeHtml(b.name) + (b.groupName ? ' <span class="gname">' + escapeHtml(b.groupName) + "</span>" : "") + '</span>' +
-        '<span class="lscore">' + b.score + "</span></div>";
+        '<span class="lscore">' + b.score.toFixed(2) + "</span></div>";
     }).join("");
   };
   el.innerHTML = '<div class="resultsbox"><h2>' + stageLabel + "</h2>" +
