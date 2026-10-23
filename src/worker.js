@@ -74,7 +74,8 @@ const OFFICIAL_RESULTS = null; // שלב 3: { date: "...", src: "https://...", s
 
 const BLOC_LABELS = { right: "קואליציה", center: "אופוזיציה", arab: "מפלגות ערביות", haredi: "הציבור החרדי", miluim: "הנדל-זליכה" };
 
-const HTML = `<!DOCTYPE html>
+function renderHTML(RESULT_STAGE, EXIT_POLLS, OFFICIAL_RESULTS) {
+return `<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -290,10 +291,10 @@ const HTML = `<!DOCTYPE html>
 <script>
 const PARTIES = ${JSON.stringify(PARTIES)};
 const POLLS = ${JSON.stringify(POLLS)};
-const RESULT_STAGE = ${JSON.stringify(RESULT_STAGE)};
+let RESULT_STAGE = ${JSON.stringify(RESULT_STAGE)};
 const SCORING_APPROVED = ${JSON.stringify(SCORING_APPROVED)};
-const EXIT_POLLS = ${JSON.stringify(EXIT_POLLS)};
-const OFFICIAL_RESULTS = ${JSON.stringify(OFFICIAL_RESULTS)};
+let EXIT_POLLS = ${JSON.stringify(EXIT_POLLS)};
+let OFFICIAL_RESULTS = ${JSON.stringify(OFFICIAL_RESULTS)};
 const GENERAL = ${JSON.stringify(GENERAL)};
 function jerusalemUtcMs(y, mo, d, h, mi) {
   const guess = Date.UTC(y, mo - 1, d, h, mi) - 2 * 3600e3;
@@ -740,11 +741,47 @@ function switchTab(which) {
   $("#view-stats").classList.toggle("hidden", bet);
   if (!bet) loadStats();
 }
+async function pollResults() {
+  try {
+    const r = await api("/api/results");
+    if (!r.ok) return;
+    const d = r.data || {};
+    const same = (d.stage || "none") === RESULT_STAGE &&
+      JSON.stringify(d.exitPolls || []) === JSON.stringify(EXIT_POLLS) &&
+      JSON.stringify(d.official || null) === JSON.stringify(OFFICIAL_RESULTS);
+    if (same) return;
+    RESULT_STAGE = d.stage || "none";
+    EXIT_POLLS = Array.isArray(d.exitPolls) ? d.exitPolls : [];
+    OFFICIAL_RESULTS = d.official || null;
+    if (!$("#view-stats").classList.contains("hidden")) loadStats();
+  } catch (e) {}
+}
+setInterval(pollResults, 5000);
+pollResults();
 $("#tab-bet").addEventListener("click", () => switchTab("bet"));
 $("#tab-stats").addEventListener("click", () => switchTab("stats"));
 </script>
 </body>
 </html>`;
+}
+
+async function currentResults(env) {
+  // Isolated single-row results store (results_data), written only via authenticated
+  // wrangler OAuth - never a public endpoint - so data updates need no code deploy.
+  try {
+    const row = await env.BETS_DB.prepare("SELECT payload FROM results_data WHERE id = 1").first();
+    if (row && row.payload) {
+      const d = JSON.parse(row.payload);
+      return {
+        stage: typeof d.stage === "string" ? d.stage : RESULT_STAGE,
+        exitPolls: Array.isArray(d.exitPolls) ? d.exitPolls : EXIT_POLLS,
+        official: d.official !== undefined ? d.official : OFFICIAL_RESULTS,
+        updated: d.ts || null
+      };
+    }
+  } catch (e) { /* results_data may not exist yet - fall back to constants */ }
+  return { stage: RESULT_STAGE, exitPolls: EXIT_POLLS, official: OFFICIAL_RESULTS, updated: null };
+}
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json; charset=utf-8" } });
@@ -822,23 +859,7 @@ export default {
     }
 
     if (url.pathname === "/api/results") {
-      // Results data lives in an isolated single-row D1 store (results_data),
-      // written only via authenticated wrangler OAuth - never a public endpoint -
-      // so result updates need no code build/deploy. Falls back to the compiled-in
-      // constants when the table/row is absent. bets/groups are untouched.
-      try {
-        const row = await env.BETS_DB.prepare("SELECT payload FROM results_data WHERE id = 1").first();
-        if (row && row.payload) {
-          const d = JSON.parse(row.payload);
-          return json({
-            stage: typeof d.stage === "string" ? d.stage : RESULT_STAGE,
-            exitPolls: Array.isArray(d.exitPolls) ? d.exitPolls : EXIT_POLLS,
-            official: d.official !== undefined ? d.official : OFFICIAL_RESULTS,
-            updated: d.ts || null
-          });
-        }
-      } catch (e) { /* results_data may not exist yet - fall back to constants */ }
-      return json({ stage: RESULT_STAGE, exitPolls: EXIT_POLLS, official: OFFICIAL_RESULTS });
+      return json(await currentResults(env));
     }
 
     if (url.pathname === "/api/bets") {
@@ -881,6 +902,7 @@ export default {
     }
 
     if (url.pathname === "/health") return json({ ok: true });
-    return new Response(HTML, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+    const R = await currentResults(env);
+    return new Response(renderHTML(R.stage, R.exitPolls, R.official), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
   },
 };
