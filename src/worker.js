@@ -821,6 +821,26 @@ export default {
       return json({ code: g.code, name: g.name });
     }
 
+    if (url.pathname === "/api/results") {
+      // Results data lives in an isolated single-row D1 store (results_data),
+      // written only via authenticated wrangler OAuth - never a public endpoint -
+      // so result updates need no code build/deploy. Falls back to the compiled-in
+      // constants when the table/row is absent. bets/groups are untouched.
+      try {
+        const row = await env.BETS_DB.prepare("SELECT payload FROM results_data WHERE id = 1").first();
+        if (row && row.payload) {
+          const d = JSON.parse(row.payload);
+          return json({
+            stage: typeof d.stage === "string" ? d.stage : RESULT_STAGE,
+            exitPolls: Array.isArray(d.exitPolls) ? d.exitPolls : EXIT_POLLS,
+            official: d.official !== undefined ? d.official : OFFICIAL_RESULTS,
+            updated: d.ts || null
+          });
+        }
+      } catch (e) { /* results_data may not exist yet - fall back to constants */ }
+      return json({ stage: RESULT_STAGE, exitPolls: EXIT_POLLS, official: OFFICIAL_RESULTS });
+    }
+
     if (url.pathname === "/api/bets") {
       const code = url.searchParams.get("code");
       if (code) {
