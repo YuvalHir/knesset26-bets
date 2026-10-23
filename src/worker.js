@@ -59,6 +59,17 @@ const POLLS = [
     seats: { yashar:23, likud:19, beyahad:14, democratim:9, meshutefet:8, shas:8, yahadut:7, tziyonut:6, otzma:8, beiteinu:8, raam:6, winter:0, miluim:4, haredi:0, noam:0 } },
 ];
 
+// ===== תוצאות: מדגמי ערוצים (ערב הבחירות, זמני) ותוצאות אמת =====
+// שלושה שלבים לפי יובל: "exit" = מדגמי הערוצים (22:00), "exit_actual" = תוצאות האמת של קלפיות המדגם, "official" = תוצאות אמת מלאות. "none" = אין עדיין.
+const RESULT_STAGE = "none";
+const EXIT_POLLS = [
+  // צורה: { id: "ch12", label: "חדשות 12", date: "27.10.26", src: "https://...",
+  //   seats: { ... },        // שלב 1: המדגם שפורסם ב-22:00
+  //   actualSeats: { ... },  // שלב 2: תוצאות האמת של קלפיות המדגם של אותו ערוץ (כשמתפרסם)
+  // }
+];
+const OFFICIAL_RESULTS = null; // שלב 3: { date: "...", src: "https://...", seats: { ... } }
+
 const BLOC_LABELS = { right: "קואליציה", center: "אופוזיציה", arab: "מפלגות ערביות", haredi: "הציבור החרדי", miluim: "הנדל-זליכה" };
 
 const HTML = `<!DOCTYPE html>
@@ -151,6 +162,14 @@ const HTML = `<!DOCTYPE html>
   .avgrow .fill { height:100%; border-radius:999px; min-width:2px; }
   .avgrow .v { width:44px; font-weight:900; text-align:left; }
   .avgrow .polltick { position:absolute; top:-3px; width:2px; height:24px; background:#101b3c99; }
+  .resultsbox { background:#fff; border:1px solid #dfe7fb; border-radius:14px; padding:14px; margin-bottom:18px; }
+  .resultsbox h2 { margin:0 0 4px; font-size:20px; color:var(--bluedark); }
+  .rssrc { font-size:12.5px; color:#5a6a96; margin-bottom:10px; }
+  .lrow { display:flex; align-items:center; gap:8px; padding:6px 4px; border-top:1px solid #eef2fb; font-size:15px; }
+  .lrow.win { background:#fff8e1; border-radius:8px; font-weight:700; }
+  .lrow .rank { width:28px; text-align:center; }
+  .lrow .lname { flex:1; }
+  .lrow .lscore { font-weight:900; color:var(--bluedark); }
   .polllegend { font-size:12.5px; color:#5a6a96; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
   .polllegend .tick { display:inline-block; width:2px; height:14px; background:#101b3c99; }
   .polllegend:empty { display:none; }
@@ -242,6 +261,7 @@ const HTML = `<!DOCTYPE html>
 </div>
 
 <div class="wrap hidden" id="view-stats">
+  <div id="results"></div>
   <div id="polllegend"></div>
   <h2 id="stats-title">הקבוצה שלכם</h2>
   <div class="stat-cards" id="stat-cards"></div>
@@ -268,6 +288,9 @@ const HTML = `<!DOCTYPE html>
 <script>
 const PARTIES = ${JSON.stringify(PARTIES)};
 const POLLS = ${JSON.stringify(POLLS)};
+const RESULT_STAGE = ${JSON.stringify(RESULT_STAGE)};
+const EXIT_POLLS = ${JSON.stringify(EXIT_POLLS)};
+const OFFICIAL_RESULTS = ${JSON.stringify(OFFICIAL_RESULTS)};
 const GENERAL = ${JSON.stringify(GENERAL)};
 function jerusalemUtcMs(y, mo, d, h, mi) {
   const guess = Date.UTC(y, mo - 1, d, h, mi) - 2 * 3600e3;
@@ -597,6 +620,62 @@ function renderAvg(el, bets, sorted, avg) {
   }).join("");
 }
 
+// ===== תוצאות וניקוד (הצעה לאישור יובל - ראו README) =====
+// תוצאה משולבת של המדגמים: ממוצע לכל מפלגה, מעוגל, מנורמל ל-120 בשיטת השאריות הגדולות.
+function combinedResults() {
+  if (RESULT_STAGE === "official" && OFFICIAL_RESULTS) return { seats: OFFICIAL_RESULTS.seats, srcs: [{ label: "תוצאות אמת מלאות", src: OFFICIAL_RESULTS.src, date: OFFICIAL_RESULTS.date }] };
+  if ((RESULT_STAGE !== "exit" && RESULT_STAGE !== "exit_actual") || !EXIT_POLLS.length) return null;
+  const field = RESULT_STAGE === "exit_actual" ? "actualSeats" : "seats";
+  const usable = EXIT_POLLS.filter(pl => pl[field]);
+  if (!usable.length) return null;
+  const raw = {}, floors = {};
+  PARTIES.forEach(p => { raw[p.id] = usable.reduce((a, pl) => a + (pl[field][p.id] || 0), 0) / usable.length; floors[p.id] = Math.floor(raw[p.id]); });
+  let sum = PARTIES.reduce((a, p) => a + floors[p.id], 0);
+  const byRemainder = [...PARTIES].sort((a, b) => (raw[b.id] - floors[b.id]) - (raw[a.id] - floors[a.id]));
+  for (let i = 0; sum < 120 && i < byRemainder.length; i++, sum++) floors[byRemainder[i].id]++;
+  return { seats: floors, srcs: usable.map(pl => ({ label: pl.label, src: pl.src, date: pl.date })) };
+}
+
+// ניקוד קירוב: מתחילים ב-100 ומורידים שגיאה משוקללת.
+// שגיאה של מפלגה שוקללת לפי גודלה בתוצאה (w = 1 + מנדטים/20), וטעות סביב אחוז החסימה (ניחשת שנכנסת ויצאה, או להיפך) עולה עוד 5 נקודות.
+function scoreBet(bet, res) {
+  let err = 0;
+  for (const p of PARTIES) {
+    const b = bet[p.id] || 0, r = res[p.id] || 0;
+    err += (1 + r / 20) * Math.abs(b - r);
+    if ((b === 0) !== (r === 0)) err += 5;
+  }
+  return Math.max(0, Math.round(100 - err));
+}
+
+function renderResults(mb, gflat) {
+  const el = $("#results");
+  const comb = combinedResults();
+  if (!comb) { el.innerHTML = ""; return; }
+  const res = comb.seats;
+  const stageLabel = RESULT_STAGE === "official" ? "תוצאות אמת מלאות ✅"
+    : (RESULT_STAGE === "exit_actual" ? "תוצאות האמת של קלפיות המדגם - זמני ⏳" : "מדגמי הערוצים - זמני ⏳");
+  const maxV = Math.max(...PARTIES.map(p => res[p.id]), 1);
+  const bars = [...PARTIES].sort((a, b) => res[b.id] - res[a.id]).map(p =>
+    '<div class="avgrow"><div class="slip"><div class="letters">' + p.letter + '</div><div class="tiny">' + p.name + '</div></div>' +
+    '<div class="n">' + p.name + '</div>' +
+    '<div class="track"><div class="fill" style="width:' + (res[p.id] / maxV * 100) + '%;background:' + p.color + '"></div></div>' +
+    '<div class="v">' + res[p.id] + '</div></div>').join("");
+  const srcs = comb.srcs.map(x => '<a href="' + x.src + '" target="_blank">' + escapeHtml(x.label) + " " + x.date + "</a>").join(" · ");
+  const lb = (list, title) => {
+    if (!list.length) return "";
+    const ranked = list.map(b => ({ ...b, score: scoreBet(b.parties, res) })).sort((a, b) => b.score - a.score || a.ts - b.ts);
+    return "<h3>" + title + "</h3>" + ranked.map((b, i) =>
+      '<div class="lrow' + (i === 0 ? " win" : "") + '"><span class="rank">' + (i === 0 ? "🥇" : (i === 1 ? "🥈" : (i === 2 ? "🥉" : (i + 1) + "."))) + '</span>' +
+      '<span class="lname">' + escapeHtml(b.name) + (b.groupName ? ' <span class="gname">' + escapeHtml(b.groupName) + "</span>" : "") + '</span>' +
+      '<span class="lscore">' + b.score + "</span></div>").join("");
+  };
+  el.innerHTML = '<div class="resultsbox"><h2>' + stageLabel + "</h2>" +
+    '<div class="rssrc">מקורות: ' + srcs + "</div>" + bars +
+    lb(mb, "🏆 מי הכי קרוב - " + group.name) +
+    lb(gflat, "🏆 מי הכי קרוב - כל הקבוצות") + "</div>";
+}
+
 function renderBets(el, bets, showGroup) {
   el.innerHTML = "";
   bets.sort((a,b) => b.ts - a.ts).forEach(b => {
@@ -641,6 +720,7 @@ async function loadStats() {
   const r2 = renderStatCards($("#gstat-cards"), flat);
   renderAvg($("#gavg"), flat, r2 ? r2.sorted : [], r2 ? r2.avg : {});
   renderBets($("#gbets"), flat, true);
+  renderResults(mb, flat);
 }
 
 function switchTab(which) {
