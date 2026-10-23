@@ -743,7 +743,6 @@ function switchTab(which) {
 $("#tab-bet").addEventListener("click", () => switchTab("bet"));
 $("#tab-stats").addEventListener("click", () => switchTab("stats"));
 </script>
-<!-- latency-probe-20261023-1004 -->
 </body>
 </html>`;
 
