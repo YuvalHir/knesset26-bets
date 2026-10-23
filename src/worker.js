@@ -623,7 +623,7 @@ function renderAvg(el, bets, sorted, avg) {
 // ===== תוצאות וניקוד (הצעה לאישור יובל - ראו README) =====
 // תוצאה משולבת של המדגמים: ממוצע לכל מפלגה, מעוגל, מנורמל ל-120 בשיטת השאריות הגדולות.
 function combinedResults() {
-  if (RESULT_STAGE === "official" && OFFICIAL_RESULTS) return { seats: OFFICIAL_RESULTS.seats, srcs: [{ label: "תוצאות אמת מלאות", src: OFFICIAL_RESULTS.src, date: OFFICIAL_RESULTS.date }] };
+  if (RESULT_STAGE === "official" && OFFICIAL_RESULTS) return { seats: Object.fromEntries(PARTIES.map(p => [p.id, OFFICIAL_RESULTS.seats[p.id] || 0])), srcs: [{ label: "תוצאות אמת מלאות", src: OFFICIAL_RESULTS.src, date: OFFICIAL_RESULTS.date }] };
   if ((RESULT_STAGE !== "exit" && RESULT_STAGE !== "exit_actual") || !EXIT_POLLS.length) return null;
   const field = RESULT_STAGE === "exit_actual" ? "actualSeats" : "seats";
   const usable = EXIT_POLLS.filter(pl => pl[field]);
