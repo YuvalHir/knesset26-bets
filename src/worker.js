@@ -62,6 +62,8 @@ const POLLS = [
 // ===== תוצאות: מדגמי ערוצים (ערב הבחירות, זמני) ותוצאות אמת =====
 // שלושה שלבים לפי יובל: "exit" = מדגמי הערוצים (22:00), "exit_actual" = תוצאות האמת של קלפיות המדגם, "official" = תוצאות אמת מלאות. "none" = אין עדיין.
 const RESULT_STAGE = "none";
+// שיטת הניקוד מוצעת בלבד - עד שיובל מאשר, לא מוצג מנצח/מדליות באף שלב
+const SCORING_APPROVED = false;
 const EXIT_POLLS = [
   // צורה: { id: "ch12", label: "חדשות 12", date: "27.10.26", src: "https://...",
   //   seats: { ... },        // שלב 1: המדגם שפורסם ב-22:00
@@ -289,6 +291,7 @@ const HTML = `<!DOCTYPE html>
 const PARTIES = ${JSON.stringify(PARTIES)};
 const POLLS = ${JSON.stringify(POLLS)};
 const RESULT_STAGE = ${JSON.stringify(RESULT_STAGE)};
+const SCORING_APPROVED = ${JSON.stringify(SCORING_APPROVED)};
 const EXIT_POLLS = ${JSON.stringify(EXIT_POLLS)};
 const OFFICIAL_RESULTS = ${JSON.stringify(OFFICIAL_RESULTS)};
 const GENERAL = ${JSON.stringify(GENERAL)};
@@ -665,10 +668,16 @@ function renderResults(mb, gflat) {
   const lb = (list, title) => {
     if (!list.length) return "";
     const ranked = list.map(b => ({ ...b, score: scoreBet(b.parties, res) })).sort((a, b) => b.score - a.score || a.ts - b.ts);
-    return "<h3>" + title + "</h3>" + ranked.map((b, i) =>
-      '<div class="lrow' + (i === 0 ? " win" : "") + '"><span class="rank">' + (i === 0 ? "🥇" : (i === 1 ? "🥈" : (i === 2 ? "🥉" : (i + 1) + "."))) + '</span>' +
-      '<span class="lname">' + escapeHtml(b.name) + (b.groupName ? ' <span class="gname">' + escapeHtml(b.groupName) + "</span>" : "") + '</span>' +
-      '<span class="lscore">' + b.score + "</span></div>").join("");
+    let rank = 0, prev = null;
+    const note = SCORING_APPROVED ? "" : ' <span class="tiny">(שיטת ניקוד מוצעת, טרם אושרה - אין הכרזת מנצח)</span>';
+    return "<h3>" + title + note + "</h3>" + ranked.map((b, i) => {
+      if (prev === null || b.score !== prev) { rank = i + 1; prev = b.score; }
+      const medal = !SCORING_APPROVED ? rank + "."
+        : (rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank + ".");
+      return '<div class="lrow' + (SCORING_APPROVED && rank === 1 ? " win" : "") + '"><span class="rank">' + medal + '</span>' +
+        '<span class="lname">' + escapeHtml(b.name) + (b.groupName ? ' <span class="gname">' + escapeHtml(b.groupName) + "</span>" : "") + '</span>' +
+        '<span class="lscore">' + b.score + "</span></div>";
+    }).join("");
   };
   el.innerHTML = '<div class="resultsbox"><h2>' + stageLabel + "</h2>" +
     '<div class="rssrc">מקורות: ' + srcs + "</div>" + bars +
