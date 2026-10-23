@@ -39,9 +39,9 @@ function jerusalemUtcMs(y, mo, d, h, mi) {
 const BET_CLOSE = jerusalemUtcMs(2026, 10, 27, 21, 59);
 
 const POLLS = [
-  { id: "ch12", label: "חדשות 12", date: "21.10.26",
-    src: "https://www.mako.co.il/news-israel-elections/2026/Article-bf175ad340f51a1027.htm",
-    seats: { yashar:23, likud:19, beyahad:15, democratim:9, meshutefet:9, shas:8, yahadut:7, tziyonut:6, otzma:7, beiteinu:8, raam:5, winter:4, miluim:0, haredi:0, noam:0 } },
+  { id: "ch12", label: "חדשות 12", date: "23.10.26",
+    src: "https://www.mako.co.il/news-israel-elections/2026/Article-8ea5e45ec2961a1027.htm",
+    seats: { yashar:23, likud:21, beyahad:15, democratim:10, meshutefet:9, shas:8, yahadut:7, tziyonut:6, otzma:8, beiteinu:8, raam:5, winter:0, miluim:0, haredi:0, noam:0 } },
   { id: "ch13", label: "חדשות 13", date: "19.10.26",
     src: "https://13tv.co.il/item/news/politics/politics/jw3wm-905406894/",
     seats: { yashar:20, likud:18, beyahad:14, democratim:9, meshutefet:9, shas:7, yahadut:7, tziyonut:7, otzma:7, beiteinu:8, raam:6, winter:4, miluim:4, haredi:0, noam:0 } },
@@ -51,9 +51,9 @@ const POLLS = [
   { id: "kan", label: "כאן 11", date: "18.10.26",
     src: "https://www.kan.org.il/content/kan-news/politic/1110393/",
     seats: { yashar:23, likud:21, beyahad:12, democratim:9, meshutefet:8, shas:8, yahadut:7, tziyonut:7, otzma:8, beiteinu:8, raam:5, winter:0, miluim:4, haredi:0, noam:0 } },
-  { id: "i24", label: "i24NEWS", date: "20.10.26",
-    src: "https://www.i24news.tv/he/news/israel-elections-2026/polls/artc-91da6024",
-    seats: { yashar:20, likud:26, beyahad:12, democratim:9, meshutefet:8, shas:8, yahadut:8, tziyonut:7, otzma:9, beiteinu:7, raam:6, winter:0, miluim:0, haredi:0, noam:0 } },
+  { id: "i24", label: "i24NEWS", date: "23.10.26",
+    src: "https://www.i24news.tv/he/news/israel-elections-2026/polls/artc-07d162ea",
+    seats: { yashar:21, likud:26, beyahad:12, democratim:8, meshutefet:9, shas:8, yahadut:7, tziyonut:6, otzma:8, beiteinu:6, raam:5, winter:4, miluim:0, haredi:0, noam:0 } },
   { id: "walla", label: "וואלה", date: "20.10.26",
     src: "https://www.walla.co.il/news/politics/383958175",
     seats: { yashar:23, likud:19, beyahad:14, democratim:9, meshutefet:8, shas:8, yahadut:7, tziyonut:6, otzma:8, beiteinu:8, raam:6, winter:0, miluim:4, haredi:0, noam:0 } },
