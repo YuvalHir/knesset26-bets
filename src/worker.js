@@ -656,7 +656,7 @@ function renderResults(mb, gflat) {
   const comb = combinedResults();
   if (!comb) { el.innerHTML = ""; return; }
   const res = comb.seats;
-  const stageLabel = RESULT_STAGE === "official" ? "תוצאות אמת מלאות ✅"
+  const stageLabel = RESULT_STAGE === "official" ? "תוצאות אמת מלאות ✔"
     : (RESULT_STAGE === "exit_actual" ? "תוצאות האמת של קלפיות המדגם - זמני ⏳" : "מדגמי הערוצים - זמני ⏳");
   const maxV = Math.max(...PARTIES.map(p => res[p.id]), 1);
   const bars = [...PARTIES].sort((a, b) => res[b.id] - res[a.id]).map(p =>
