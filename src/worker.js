@@ -66,7 +66,7 @@ const POLLS = [
 // שלושה שלבים לפי יובל: "exit" = מדגמי הערוצים (22:00), "exit_actual" = תוצאות האמת של קלפיות המדגם, "official" = תוצאות אמת מלאות. "none" = אין עדיין.
 const RESULT_STAGE = "none";
 // שיטת הניקוד מוצעת בלבד - עד שיובל מאשר, לא מוצג מנצח/מדליות באף שלב
-const SCORING_APPROVED = false;
+const SCORING_APPROVED = true; // אושר ע"י יובל 25.10 20:41
 const EXIT_POLLS = [
   // צורה: { id: "ch12", label: "חדשות 12", date: "27.10.26", src: "https://...",
   //   seats: { ... },        // שלב 1: המדגם שפורסם ב-22:00
@@ -327,6 +327,178 @@ return `<!DOCTYPE html>
     body.party .tmlog { font-size:14px; }
     body.party .brmark61 span { font-size:14px; top:-24px; }
   }
+  /* ===== FX: שכבת אנימציות פרימיום ===== */
+  .fx-num { font-variant-numeric:tabular-nums; display:inline-block; }
+  .brseg { transition:width 1.1s cubic-bezier(.22,1,.36,1); }
+  .brmark61.fx-cross span { animation:markGlow 1.5s ease 2; }
+  @keyframes markGlow { 50% { box-shadow:0 0 18px 5px rgba(255,199,64,.95); background:#ffe08a; } }
+
+  /* רגע כניסת המדגמים - מסך מלא */
+  #fx-takeover { position:fixed; inset:0; z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:radial-gradient(120% 100% at 50% 0%, #16213e 0%, #0b0f1a 70%); color:#fff; }
+  #fx-takeover .fx-scan { position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg, transparent 0%, rgba(147,197,253,.14) 50%, transparent 100%); background-size:100% 240px; background-repeat:no-repeat; }
+  #fx-takeover .fx-time { font-size:clamp(42px,9vw,86px); font-weight:900; letter-spacing:.04em; color:#93c5fd;
+    text-shadow:0 0 34px rgba(147,197,253,.55); font-variant-numeric:tabular-nums; }
+  #fx-takeover .fx-title { font-size:clamp(26px,5.4vw,54px); font-weight:900; margin-top:8px; display:flex; }
+  #fx-takeover .fx-title span { display:inline-block; white-space:pre; }
+  #fx-takeover .fx-sub { margin-top:16px; font-size:clamp(15px,2.4vw,22px); color:#c7d5f7; font-weight:600; }
+
+  /* פודיום v2 - במת זכייה קולנועית */
+  .podiumbox { margin:18px 0 12px; text-align:center; position:relative; overflow:hidden; border-radius:18px; padding:26px 10px 32px;
+    background:radial-gradient(ellipse 90% 70% at 50% 0%, rgba(255,214,90,.15), transparent 62%), linear-gradient(180deg,#101828,#0b0f1a); }
+  .podiumbox .podspot { position:absolute; inset:-45%; pointer-events:none;
+    background:conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(255,222,120,.10) 18deg, transparent 42deg, transparent 90deg, rgba(147,197,253,.08) 108deg, transparent 132deg);
+    animation:podspin 26s linear infinite; }
+  @keyframes podspin { to { transform:rotate(360deg); } }
+  .podiumbox .ptitle { position:relative; font-size:clamp(22px,3.4vw,34px); font-weight:900; margin-bottom:20px; color:#e5e7eb; }
+  .podiumbox.final .ptitle { background:linear-gradient(100deg,#8a6508 15%,#ffd34d 38%,#fff6cf 50%,#ffd34d 62%,#8a6508 85%);
+    background-size:220% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:shimmer 2.8s linear infinite; }
+  @keyframes shimmer { to { background-position:-220% 0; } }
+  .podium { position:relative; display:flex; align-items:flex-end; justify-content:center; gap:16px; direction:rtl; }
+  .podium .col { display:flex; flex-direction:column; align-items:center; gap:7px; }
+  .podium .pmedal { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:1.4rem;
+    color:#5b3b00; background:radial-gradient(circle at 30% 28%,#ffedb0,#f0b429 58%,#b97f0e); position:relative;
+    box-shadow:0 3px 14px rgba(0,0,0,.35), inset 0 -3px 6px rgba(120,72,0,.45), inset 0 2px 3px rgba(255,255,255,.55); }
+  .podium .c1 .pmedal::after { content:""; position:absolute; inset:0; border-radius:50%;
+    background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.75) 48%, transparent 62%); background-size:250% 100%;
+    animation:shine 2.4s 2s ease-in-out infinite; }
+  @keyframes shine { 0% { background-position:130% 0; } 60%,100% { background-position:-130% 0; } }
+  .podium .c2 .pmedal { width:42px; height:42px; font-size:1.1rem; color:#3f4750; background:radial-gradient(circle at 30% 28%,#fff,#ccd3da 58%,#97a1ac); }
+  .podium .c3 .pmedal { width:42px; height:42px; font-size:1.1rem; color:#4a2c10; background:radial-gradient(circle at 30% 28%,#ffdcbb,#cd7f32 58%,#96531b); }
+  .podium .crown { font-size:30px; margin-bottom:-4px; }
+  .podium .pname { font-weight:800; font-size:1rem; color:#f3f4f6; }
+  .podium .c1 .pname { font-size:1.25rem; }
+  .podium .pname span { display:inline-block; white-space:pre; }
+  .podium .pscore { font-variant-numeric:tabular-nums; color:#c7d5f7; font-weight:800; }
+  .podium .step { width:112px; border-radius:12px 12px 0 0; background:linear-gradient(180deg,#e6edf7,#b7c4d6);
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.65), 0 -2px 12px rgba(0,0,0,.25); transform-origin:bottom center; }
+  .podium .step.s1 { height:96px; background:linear-gradient(180deg,#ffe391,#f0b429 70%,#d99a12); }
+  .podium .step.s2 { height:64px; }
+  .podium .step.s3 { height:46px; }
+  .podium .step.empty { background:transparent; box-shadow:none; }
+  .podiumbox canvas.fx-confetti { position:absolute; inset:0; pointer-events:none; z-index:5; }
+  @media (max-width:480px) { .podium .step { width:82px; } .podium .step.s1 { height:78px; } .podium .step.s2 { height:54px; } .podium .step.s3 { height:38px; } }
+  /* ===== מסך מסיבה/טאבלט: תוצאות בלבד, הכל בעמוד אחד בלי גלילה ===== */
+  body.party header, body.party footer, body.party .tabs, body.party .flagbar, body.party .flagstar { display:none !important; }
+  body.party main { padding:0 !important; margin:0 !important; max-width:none !important; width:100% !important; }
+  body.party .resultsbox { margin:0 !important; border:none !important; border-radius:0 !important; min-height:100dvh; box-sizing:border-box;
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.55fr); column-gap:16px; align-content:start;
+    grid-template-areas:"head head" "src src" "chsw chsw" "chcd chcd" "pod grid" "bloc grid" "land grid" "cred cred"; }
+  body.party .resultsbox > .chswitch { grid-area:chsw; }
+  body.party .resultsbox > .chcards { grid-area:chcd; }
+  body.party .resultsbox > h2 { grid-area:head; margin:0 0 2px; }
+  body.party .resultsbox > .rssrc { grid-area:src; }
+  body.party .resultsbox > .podiumbox { grid-area:pod; margin:6px 0; }
+  body.party .resultsbox > .pgridwrap { grid-area:grid; margin:6px 0; }
+  body.party .resultsbox > .blocrace { grid-area:bloc; margin:6px 0; }
+  body.party .resultsbox > .landrow { grid-area:land; }
+  body.party .resultsbox > .pcredits { grid-area:cred; }
+  body.party .resultsbox > .deltacap, body.party .resultsbox > h3, body.party .resultsbox > .lrow { display:none !important; }
+  body.party .pgrid { grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; align-content:start; }
+  body.party .ptile { align-self:start; }
+  body.party .pphoto { height:70px; }
+  body.party .pseats { top:31px; font-size:31px; }
+  body.party .ptname { font-size:12px; min-height:27px; padding:2px; }
+  body.party .podiumbox { padding:14px 8px 16px; }
+  body.party .podiumbox .ptitle { font-size:22px; margin-bottom:8px; }
+  body.party .podium { gap:10px; }
+  body.party .podium .pmedal { width:44px; height:44px; font-size:1.2rem; }
+  body.party .podium .c2 .pmedal, body.party .podium .c3 .pmedal { width:36px; height:36px; font-size:1rem; }
+  body.party .podium .crown svg { width:28px; height:23px; }
+  body.party .podium .step { width:88px; }
+  body.party .podium .step.s1 { height:62px; }
+  body.party .podium .step.s2 { height:44px; }
+  body.party .podium .step.s3 { height:34px; }
+  body.party .podium .pname { font-size:.9rem; }
+  body.party .podium .c1 .pname { font-size:1.05rem; }
+  body.party .podium .pscore { font-size:.9rem; }
+  body.party .chantbl { font-size:10.5px; }
+  body.party .chantbl th, body.party .chantbl td { padding:1px 5px; }
+  body.party .whosright { font-size:12px; margin-top:2px; }
+  body.party .tmlog { font-size:11.5px; }
+  body.party .tmlog h3, body.party .resultsbox > .landrow h3 { font-size:15px !important; margin:4px 0 2px !important; }
+  body.party .tmlog .tm { padding:1px 0; }
+  body.party .blocrace { margin:14px 0 4px !important; position:relative; z-index:6; }
+  
+  body.party .blocrace .brlegend { font-size:10.5px; margin-top:2px; }
+  body.party .blocrace .brnums { font-size:15px; flex-wrap:nowrap; gap:10px; white-space:nowrap; margin-bottom:34px; }
+  body.party .pcredits { font-size:10px; opacity:.55; margin:2px 0 0; }
+  body.party .resultsbox > h2 { font-size:21px !important; }
+  body.party .resultsbox > .rssrc { font-size:11px; }
+  body.party .landrow { margin-top:4px; }
+  body.party .lcol-t { flex:1.6; }
+  body.party .lcol-n { flex:1; }
+  body.party .podiumbox { padding:10px 8px 12px; margin:2px 0 !important; }
+  body.party .podiumbox .ptitle { font-size:19px; margin-bottom:4px; }
+  body.party .podium .crown { margin-bottom:-6px; }
+  body.party .podium .col { gap:4px; }
+  body.party .podium .pmedal { width:38px; height:38px; font-size:1.05rem; }
+  body.party .podium .c2 .pmedal, body.party .podium .c3 .pmedal { width:31px; height:31px; font-size:.9rem; }
+  body.party .podium .crown svg { width:24px; height:20px; }
+  body.party .podium .step { width:80px; }
+  body.party .podium .step.s1 { height:48px; }
+  body.party .podium .step.s2 { height:34px; }
+  body.party .podium .step.s3 { height:26px; }
+  body.party .podium .pname { font-size:.82rem; }
+  body.party .podium .c1 .pname { font-size:.95rem; }
+  body.party .podium .pscore { font-size:.82rem; }
+  @media (max-height:700px) {
+    body.party .pphoto { height:58px; }
+    body.party .pseats { top:26px; font-size:27px; }
+    body.party .ptname { font-size:11px; min-height:25px; padding:2px; }
+    body.party .podium .step.s1 { height:48px; }
+    body.party .podium .step.s2 { height:34px; }
+    body.party .podium .step.s3 { height:26px; }
+    body.party .podium .pmedal { width:36px; height:36px; font-size:1rem; }
+    body.party .chantbl { font-size:10.5px; }
+    body.party .chantbl th, body.party .chantbl td { padding:1px 5px; }
+    body.party .resultsbox { padding:12px 14px !important; }
+  }
+
+  /* מתג מדגמים + פיצול מובילים */
+  .chswitch { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 2px; }
+  .chpill { border:1px solid #c7d6f5; background:#fff; color:var(--bluedark); border-radius:999px; padding:4px 14px; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; transition:all .2s; }
+  .chpill:hover { border-color:var(--blue); }
+  .chpill.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .chcards { margin:8px 0 2px; }
+  .chcap { font-size:13.5px; font-weight:800; color:#b45309; margin-bottom:6px; }
+  .chcardrow { display:flex; flex-wrap:wrap; gap:8px; }
+  .chcard { border:2px solid #ccc; border-radius:12px; background:#fff; padding:6px 12px; font-family:inherit; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:1px; transition:transform .2s; }
+  .chcard:hover { transform:translateY(-2px); }
+  .chcard .chch { font-size:11.5px; color:#5a6a96; font-weight:700; }
+  .chcard .chld { font-size:15px; font-weight:900; color:var(--bluedark); }
+  .notthr { font-size:12.5px; color:#8494b8; margin:2px 0 8px; }
+  .scorefoot { position:relative; font-size:11.5px; color:#9aa7c7; margin:14px auto 0; max-width:540px; line-height:1.5; }
+  /* ציר לילה אנכי */
+  .tmlog { margin:12px 0 14px; font-size:13px; color:#37456b; }
+  .tmlog .tm { position:relative; padding:2px 24px 12px 0; border-bottom:none; }
+  .tmlog .tm::before { content:""; position:absolute; right:0; top:5px; width:11px; height:11px; border-radius:50%; background:var(--blue); border:2px solid #fff; box-shadow:0 0 0 2px #c7d6f5; }
+  .tmlog .tm::after { content:""; position:absolute; right:5.5px; top:19px; bottom:-2px; width:1.5px; background:#dbe4f7; }
+  .tmlog .tm:last-child::after { display:none; }
+  .tmlog .tm.live::before { background:#d6336c; box-shadow:0 0 0 2px #f5c2d4; animation:tmpulse 1.6s ease-in-out infinite; }
+  .tmlog .tm .tmtime { display:inline; margin-left:6px; font-size:11px; color:#8494b8; }
+  @keyframes tmpulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.35); } }
+  @keyframes tmin { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:translateY(0); } }
+  .tmlog .tm.tmnew { animation:tmin .6s cubic-bezier(.22,1.35,.32,1) both; }
+  body.party .chpill { background:#1b2740; color:#cbd5f5; border-color:#26314a; font-size:12px; padding:3px 12px; }
+  body.party .chpill.active { background:#2f5fd0; color:#fff; border-color:#2f5fd0; }
+  body.party .chswitch { margin:2px 0; }
+  body.party .chcap { font-size:12px; margin-bottom:4px; }
+  body.party .chcards { margin:4px 0 2px; }
+  body.party .tmlog .tm { padding-bottom:5px; font-size:10.5px; }
+  body.party .tmlog { margin:6px 0 8px; }
+  body.party .notthr { font-size:11px; margin:2px 0 0; }
+  body.party .chcard { background:#1b2740; padding:4px 10px; }
+  body.party .chcardrow { gap:6px; }
+  body.party .chcard .chld { color:#e5e7eb; font-size:13.5px; }
+  body.party .chcap { color:#fbbf24; }
+  body.party .notthr { color:#9aa7c7; }
+  body.party .tmlog { color:#cbd5f5; }
+  body.party .tmlog .tm::before { border-color:#111827; box-shadow:0 0 0 2px #26314a; }
+  body.party .tmlog .tm::after { background:#26314a; }
+  body.party .tmlog .tm .tmtime { color:#7c8cb0; }
+  body.party .scorefoot { color:#7c8cb0; }
 </style>
 </head>
 <body>
@@ -774,6 +946,10 @@ function renderAvg(el, bets, sorted, avg) {
 // תוצאה משולבת של המדגמים: ממוצע לכל מפלגה, מעוגל, מנורמל ל-120 בשיטת השאריות הגדולות.
 function combinedResults() {
   if (RESULT_STAGE === "official" && OFFICIAL_RESULTS) return { seats: Object.fromEntries(PARTIES.map(p => [p.id, OFFICIAL_RESULTS.seats[p.id] || 0])), srcs: [{ label: "תוצאות אמת מלאות", src: OFFICIAL_RESULTS.src, date: OFFICIAL_RESULTS.date }] };
+  if (RESULT_STAGE === "exit" && selectedExitChannel != null) {
+    const pl = EXIT_POLLS.filter(x => x.seats)[selectedExitChannel];
+    if (pl) return { seats: Object.fromEntries(PARTIES.map(p => [p.id, pl.seats[p.id] || 0])), srcs: [{ label: "מדגם " + pl.label, src: pl.src, date: pl.date }] };
+  }
   if ((RESULT_STAGE !== "exit" && RESULT_STAGE !== "exit_actual") || !EXIT_POLLS.length) return null;
   const field = RESULT_STAGE === "exit_actual" ? "actualSeats" : "seats";
   const usable = EXIT_POLLS.filter(pl => pl[field]);
@@ -798,8 +974,216 @@ function scoreBet(bet, res) {
   return 100 - err;
 }
 
+
+// ===== FX: מנוע אנימציות פרימיום (קפיצים, ספירות, זכוכית, קונפטי) =====
+let fxPrimed = false;
+let pendingTakeover = null;
+const FX = (() => {
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const q = new URLSearchParams(location.search);
+  const freezeAt = q.has("fxfreeze") ? (parseFloat(q.get("fxfreeze")) || 0) : null; // הקפאה דטרמיניסטית לתצוגה מקדימה
+  const noTakeover = q.has("fxnotakeover");
+  if (freezeAt != null) setInterval(() => { try { document.getAnimations({ subtree: true }).forEach(a => { a.pause(); a.currentTime = freezeAt * 1000; }); } catch (e) {} }, 120);
+  const SPRING = "cubic-bezier(.22,1.35,.32,1)";
+  const EASE = "cubic-bezier(.16,1,.3,1)";
+  function anim(el, frames, opts) {
+    opts = Object.assign({ fill: "both" }, opts);
+    if (reduced) return null;
+    const a = el.animate(frames, opts);
+    if (freezeAt != null) { a.pause(); a.currentTime = Math.max(0, freezeAt * 1000); }
+    return a;
+  }
+  function countUp(el, from, to, delay, dur, dec) {
+    dec = dec || 0;
+    if (reduced) { el.textContent = to.toFixed(dec); return; }
+    if (freezeAt != null) {
+      const p = Math.min(1, Math.max(0, (freezeAt * 1000 - delay) / dur));
+      const e = 1 - Math.pow(1 - p, 4);
+      el.textContent = (from + (to - from) * e).toFixed(dec);
+      return;
+    }
+    const t0 = performance.now() + delay;
+    (function tick(t) {
+      const p = Math.min(1, Math.max(0, (t - t0) / dur));
+      const e = 1 - Math.pow(1 - p, 4);
+      el.textContent = (from + (to - from) * e).toFixed(dec);
+      if (p < 1) requestAnimationFrame(tick);
+    })(performance.now());
+  }
+  // קונפטי פיזיקלי על קנבס: כבידה, גרר, סיבוב, רפרוף; עוצר כשהכל נחת
+  function confetti(container, big) {
+    if (reduced) return;
+    const cv = document.createElement("canvas");
+    cv.className = "fx-confetti";
+    container.appendChild(cv);
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = container.clientWidth, H = container.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.width = W + "px"; cv.style.height = H + "px";
+    const ctx = cv.getContext("2d");
+    ctx.scale(dpr, dpr);
+    const colors = ["#f0b429", "#ffd34d", "#93c5fd", "#f3f4f6", "#0e9aa7", "#d6336c", "#2e9e5b"];
+    const parts = [];
+    const bursts = big ? [1500, 2200, 3000] : [1500];
+    let fired = 0;
+    function spawn(n) {
+      for (let i = 0; i < n; i++) {
+        const ang = (-90 + (Math.random() * 100 - 50)) * Math.PI / 180;
+        const sp = 230 + Math.random() * 300;
+        parts.push({ x: W / 2 + (Math.random() * 90 - 45), y: H * 0.55,
+          vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
+          w: 5 + Math.random() * 5, h: 8 + Math.random() * 7,
+          rot: Math.random() * Math.PI * 2, vr: (Math.random() - .5) * 12,
+          fl: Math.random() * Math.PI * 2, c: colors[(Math.random() * colors.length) | 0],
+          circle: Math.random() < .3 });
+      }
+    }
+    function step(dt, t) {
+      while (fired < bursts.length && t >= bursts[fired]) { spawn(big ? 90 : 150); fired++; }
+      for (const p of parts) {
+        p.vy += 340 * dt;
+        p.vx *= (1 - .8 * dt);
+        p.vy *= (1 - .25 * dt);
+        p.fl += 5 * dt;
+        p.x += (p.vx + Math.sin(p.fl) * 34) * dt;
+        p.y += p.vy * dt;
+        p.rot += p.vr * dt;
+      }
+      for (let i = parts.length - 1; i >= 0; i--) if (parts[i].y > H + 24) parts.splice(i, 1);
+    }
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      for (const p of parts) {
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.fillStyle = p.c;
+        if (p.circle) { ctx.beginPath(); ctx.arc(0, 0, p.w / 2, 0, 7); ctx.fill(); }
+        else ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.sin(p.fl)) + 2);
+        ctx.restore();
+      }
+    }
+    if (freezeAt != null) { // מצב הקפאה: סימולציה דטרמיניסטית עד נקודת הזמן
+      for (let t = 0; t <= freezeAt * 1000; t += 16.67) step(0.01667, t);
+      draw();
+      return;
+    }
+    const t0 = performance.now();
+    let last = t0, dead = false;
+    (function loop(now) {
+      const dt = Math.min(.05, (now - last) / 1000); last = now;
+      step(dt, now - t0);
+      draw();
+      if (fired >= bursts.length && !parts.length) { cv.remove(); return; }
+      if (!dead) requestAnimationFrame(loop);
+    })(t0);
+  }
+  return { reduced, anim, countUp, confetti, freezeAt, noTakeover, SPRING, EASE };
+})();
+
+// רגע ההגעה של המדגמים/האמת - מסך מלא קולנועי שנפתח ללוח
+function playTakeover(stage, cb) {
+  const cfg = { exit: { time: "22:00", title: "מדגמי הערוצים עלו", sub: "התמונה הראשונה של הלילה - זמני ⏳" },
+    exit_actual: { time: "🗳️", title: "תוצאות אמת ראשונות", sub: "קלפיות המדגם - זמני ⏳" },
+    official: { time: "✔", title: "תוצאות האמת המלאות", sub: "סופי ורשמי" } }[stage];
+  if (FX.reduced || FX.noTakeover || !cfg) { cb(); return; }
+  const ov = document.createElement("div");
+  ov.id = "fx-takeover";
+  ov.innerHTML = '<div class="fx-scan"></div><div class="fx-time"></div><div class="fx-title"></div><div class="fx-sub"></div>';
+  document.body.appendChild(ov);
+  ov.querySelector(".fx-time").textContent = cfg.time;
+  ov.querySelector(".fx-title").innerHTML = [...cfg.title].map(ch => "<span>" + escapeHtml(ch) + "</span>").join("");
+  ov.querySelector(".fx-sub").textContent = cfg.sub;
+  FX.anim(ov, [{ opacity: 0 }, { opacity: 1 }], { duration: 350 });
+  FX.anim(ov.querySelector(".fx-scan"), [{ backgroundPosition: "0 -240px", opacity: 0 }, { opacity: 1, offset: .3 }, { backgroundPosition: "0 110vh", opacity: 0 }], { duration: 1500, easing: "ease-in-out" });
+  FX.anim(ov.querySelector(".fx-time"), [{ transform: "scale(1.7)", opacity: 0, filter: "blur(10px)" }, { transform: "scale(1)", opacity: 1, filter: "blur(0px)" }], { duration: 750, delay: 250, easing: FX.SPRING });
+  ov.querySelectorAll(".fx-title span").forEach((s, i) => FX.anim(s, [{ transform: "translateY(115%) rotate(6deg)", opacity: 0 }, { transform: "translateY(0) rotate(0deg)", opacity: 1 }], { duration: 650, delay: 750 + i * 38, easing: FX.SPRING }));
+  FX.anim(ov.querySelector(".fx-sub"), [{ opacity: 0, transform: "translateY(12px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 500, delay: 1800, easing: FX.EASE });
+  FX.anim(ov, [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(-7%)" }], { duration: 600, delay: 2700, easing: "cubic-bezier(.5,0,.75,0)" });
+  if (FX.freezeAt != null) { cb(); return; } // בהקפאה: שתי השכבות מצוירות יחד, בלי טיימרים
+  setTimeout(cb, 2150); // הלוח מתחיל לצוץ כשהמסך מתרומם
+  setTimeout(() => ov.remove(), 3450);
+}
+
+// במת הפודיום (מבוסס על גיבוי הגרפיקות; מוצג רק כש-SCORING_APPROVED)
+function renderPodium(list, isFinal) {
+  if (!SCORING_APPROVED || !list.length) return "";
+  const comb = combinedResults();
+  if (!comb) return "";
+  const res = comb.seats;
+  const ranked = list.map(b => ({ ...b, score: scoreBet(b.parties, res) })).sort((a, b) => b.score - a.score || a.ts - b.ts);
+  let rank = 0, prev = null;
+  ranked.forEach((b, i) => { if (prev === null || Math.abs(b.score - prev) > 1e-9) { rank = i + 1; prev = b.score; } b._rank = rank; });
+  const cols = [2, 1, 3].map(r => {
+    const bs = ranked.filter(b => b._rank === r);
+    if (!bs.length) return '<div class="col" data-r="' + r + '"><div class="step s' + r + ' empty"></div></div>';
+    const names = bs.map(b => '<div class="pname">' + escapeHtml(b.name) + "</div>").join("");
+    return '<div class="col c' + r + '" data-r="' + r + '">' +
+      (r === 1 ? '<div class="crown"><svg viewBox="0 0 32 26" width="34" height="28"><path d="M2 19 L0 5 L9 11 L16 0 L23 11 L32 5 L30 19 Z" fill="#f0b429" stroke="#b97f0e" stroke-width="1.4" stroke-linejoin="round"/><rect x="3" y="20.5" width="26" height="3.4" rx="1.7" fill="#b97f0e"/></svg></div>' : "") +
+      '<div class="pmedal">' + r + "</div>" +
+      '<div class="pnames">' + names + "</div>" +
+      '<div class="pscore fx-num" data-v="' + bs[0].score.toFixed(2) + '">' + bs[0].score.toFixed(2) + "</div>" +
+      '<div class="step s' + r + '"></div></div>';
+  }).join("");
+  return '<div class="podiumbox' + (isFinal ? " final" : "") + '"><div class="podspot"></div><div class="ptitle">' +
+    (isFinal ? "🏆 המנצחים!" : "המובילים נכון לעכשיו - זמני ⏳") + '</div><div class="podium">' + cols + '</div><div class="scorefoot">* הניקוד: מתחילים מ-100 נקודות. כל מנדט סטייה מהתוצאה מוריד נקודות - סטייה במפלגה גדולה עולה יותר, וטעות בכניסה או יציאה של מפלגה מהכנסת עולה 5 נקודות. בתיקו חולקים את המקום.</div></div>';
+}
+
+// תיאוריאטור הכניסות: אריחים, ספירות, גושים, טבלה, פודיום - הכל בקפיצים מדורגים
+function fxChoreograph(box, res, prevSeats, first) {
+  box.querySelectorAll(".ptile").forEach((t, i) => {
+    if (first) FX.anim(t, [{ opacity: 0, transform: "translateY(28px) scale(.92)", filter: "blur(6px)" }, { opacity: 1, transform: "translateY(0) scale(1)", filter: "blur(0px)" }], { duration: 720, delay: 150 + i * 85, easing: FX.SPRING });
+    const num = t.querySelector(".fx-num");
+    if (num) {
+      const v = +num.dataset.v, pv = prevSeats ? (prevSeats[t.dataset.pid] || 0) : 0;
+      if (first) FX.countUp(num, 0, v, 350 + i * 85, 900);
+      else if (pv !== v) FX.countUp(num, pv, v, 0, 600);
+    }
+    const dl = t.querySelector(".delta");
+    if (dl && first) FX.anim(dl, [{ transform: "scale(.3)", opacity: 0 }, { transform: "scale(1.18)", offset: .7 }, { transform: "scale(1)", opacity: 1 }], { duration: 520, delay: 1050 + i * 45, easing: FX.SPRING });
+  });
+  // מרוץ הגושים: רוחב מונפש; מעבר של קו ה-61 מקבל זוהר
+  const segs = box.querySelectorAll(".brseg");
+  if (segs.length) {
+    const prevBs = prevSeats ? blocSums(prevSeats) : null;
+    const prevWidths = prevBs ? [prevBs.right, 120 - prevBs.right - prevBs.arab, prevBs.arab].map(x => (x / 120 * 100) + "%") : ["0%", "0%", "0%"];
+    segs.forEach((s, i) => FX.anim(s, [{ width: prevWidths[i] }, { width: s.style.width }], { duration: 1150, delay: first ? 420 : 0, easing: FX.EASE }));
+    const coal = blocSums(res).right, pcoal = prevBs ? prevBs.right : null;
+    const mk = box.querySelector(".brmark61");
+    if (mk && pcoal != null && (pcoal >= 61) !== (coal >= 61)) {
+      mk.classList.add("fx-cross");
+      setTimeout(() => mk.classList.remove("fx-cross"), 3300);
+    }
+  }
+  box.querySelectorAll(".chpill,.chcard").forEach((b, i) => {
+    if (first) FX.anim(b, [{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 420, delay: 100 + i * 55, easing: FX.EASE });
+  });
+  // הפודיום: עמודות קמות בסדר 3-2-1, מדליה קופצת, כתר נוחת, שמות באותיות, קונפטי
+  const pod = box.querySelector(".podiumbox");
+  if (pod) {
+    const order = { "3": 0, "2": 1, "1": 2 };
+    pod.querySelectorAll(".col").forEach(col => {
+      const i = order[col.dataset.r] || 0;
+      const delay = (first ? 500 : 100) + i * 420;
+      FX.anim(col, [{ opacity: 0, transform: "translateY(46px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 700, delay, easing: FX.SPRING });
+      const step = col.querySelector(".step:not(.empty)");
+      if (step) FX.anim(step, [{ transform: "scaleY(0)" }, { transform: "scaleY(1.06)", offset: .8 }, { transform: "scaleY(1)" }], { duration: 680, delay: delay + 120, easing: FX.SPRING });
+      const medal = col.querySelector(".pmedal");
+      if (medal) FX.anim(medal, [{ transform: "scale(.2)", opacity: 0 }, { transform: "scale(1.18)", offset: .7 }, { transform: "scale(1)", opacity: 1 }], { duration: 640, delay: delay + 380, easing: FX.SPRING });
+      const crown = col.querySelector(".crown");
+      if (crown) FX.anim(crown, [{ transform: "translateY(-46px) scale(1.6)", opacity: 0 }, { transform: "translateY(4px)", opacity: 1, offset: .75 }, { transform: "translateY(0) scale(1)" }], { duration: 800, delay: delay + 700, easing: FX.SPRING });
+    });
+    pod.querySelectorAll(".pname").forEach((nm, k) => {
+      FX.anim(nm, [{ opacity: 0, transform: "translateY(14px)", filter: "blur(5px)" }, { opacity: 1, transform: "translateY(0)", filter: "blur(0px)" }], { duration: 560, delay: (first ? 1500 : 300) + k * 200, easing: FX.SPRING });
+    });
+    pod.querySelectorAll(".pscore").forEach((sc, i) => FX.countUp(sc, 0, parseFloat(sc.dataset.v), (first ? 1700 : 300) + i * 260, 1000, 2));
+    if (first) FX.confetti(pod, pod.classList.contains("final"));
+  }
+}
+
 // ===== תצוגת זמן-אמת מול המדגמים (אושר ע"י יובל 25.10) =====
 let lastRenderedSeats = null;
+let selectedExitChannel = null; // null = ממוצע; אחרת אינדקס במדגמים הזמינים
+{ const chq = new URLSearchParams(location.search).get("ch"); if (chq) selectedExitChannel = parseInt(chq, 10); }
+let lastMb = null, lastGflat = null;
 
 // ממוצע מדגמים (שלב 1) - הבסיס להשוואה "מול המדגם" בשלבים המאוחרים
 function exitAvgSeats() {
@@ -829,30 +1213,30 @@ function blocRace(res) {
     '<div class="brlegend">קואליציה (כחול): ליכוד, ש״ס, יהדות התורה, הציונות הדתית-זהות, עוצמה יהודית (ועמך ישראל אם נכנס) · אופוזיציה (אדום): כל שאר המפלגות, כולל הנדל-זליכה · ערביות (ירוק): המשותפת ורע״מ - נספרות בצד האופוזיציה</div></div>';
 }
 
-// (1) כל מדגם בפני עצמו + מי הכי קרוב לאמת
-function channelTable(res) {
-  const usable = EXIT_POLLS.filter(pl => pl.seats);
-  if (!usable.length) return "";
-  const avg = exitAvgSeats() || {};
-  const shown = PARTIES.filter(p => usable.some(pl => (pl.seats[p.id] || 0) > 0));
-  const head = "<tr><th>מפלגה</th>" + usable.map(pl => '<th><a href="' + pl.src + '" target="_blank">' + escapeHtml(pl.label) + (pl.date ? " · " + pl.date : "") + "</a></th>").join("") + "<th>ממוצע</th></tr>";
-  const rows = shown.map(p => "<tr><td>" + p.name + "</td>" + usable.map(pl => "<td>" + (pl.seats[p.id] || 0) + "</td>").join("") + "<td><b>" + (avg[p.id] || 0) + "</b></td></tr>").join("");
-  let whosRight = "";
-  if (RESULT_STAGE !== "exit") {
-    const ranked = usable.map(pl => ({ label: pl.label, err: PARTIES.reduce((a, p) => a + Math.abs((pl.seats[p.id] || 0) - (res[p.id] || 0)), 0) })).sort((a, b) => a.err - b.err);
-    if (ranked.length) whosRight = '<div class="whosright">🏆 הכי קרוב לאמת כרגע: <b>' + escapeHtml(ranked[0].label) + "</b> (פער " + ranked[0].err + " מנדטים)</div>";
-  }
-  return "<h3>📺 כל מדגם בפני עצמו</h3>" + '<table class="chantbl">' + head + rows + "</table>" + whosRight;
-}
-
-// (7) ציר הלילה: אירועים נוכחיים, נבנה מחדש בכל רינדור
+// (7) ציר הלילה האנכי: אירועים עם נקודות ושעות; אירוע חדש או טקסט שהשתנה נכנס באנימציה (נשמר ב-sessionStorage)
 function nightTimeline(res) {
   const ev = [];
-  if (RESULT_STAGE === "official") ev.push("✔ תוצאות אמת מלאות");
-  if (RESULT_STAGE === "exit_actual") ev.push("⏳ החלו תוצאות האמת של קלפיות המדגם");
-  if (COUNTED != null) ev.push("🧮 נספרו " + COUNTED + "% מהקולות");
-  EXIT_POLLS.filter(pl => pl.seats).forEach(pl => ev.push("📺 פורסם מדגם " + pl.label + (pl.date ? " (" + pl.date + ")" : "")));
-  return '<div class="tmlog"><h3>🌙 ציר הלילה</h3>' + ev.map(t => '<div class="tm">' + t + "</div>").join("") + "</div>";
+  const usable = EXIT_POLLS.filter(pl => pl.seats);
+  if (RESULT_STAGE === "official") ev.push({ id: "final", t: (OFFICIAL_RESULTS && OFFICIAL_RESULTS.date) || "", txt: "✔ פורסמו תוצאות אמת מלאות" });
+  if (RESULT_STAGE === "exit_actual") ev.push({ id: "sample", t: "", txt: "⏳ תוצאות האמת של קלפיות המדגם" + (COUNTED != null ? " · נספרו " + COUNTED + "% מהקולות" : ""), live: true });
+  if (RESULT_STAGE !== "exit") {
+    const ex = exitAvgSeats();
+    if (ex) {
+      const b0 = blocSums(ex), b1 = blocSums(res);
+      if ((b0.right >= 61) !== (b1.right >= 61)) ev.push({ id: "cross61", t: "", txt: b1.right >= 61 ? "👑 הקואליציה חצתה את 61 המנדטים" : "⚡ הקואליציה ירדה מתחת ל-61", live: true });
+    }
+    const ranked = usable.map(pl => ({ label: pl.label, err: PARTIES.reduce((a, p) => a + Math.abs((pl.seats[p.id] || 0) - (res[p.id] || 0)), 0) })).sort((a, b) => a.err - b.err);
+    if (ranked.length) ev.push({ id: "closest", t: "", txt: "🏆 המדגם הכי קרוב לאמת כרגע: " + ranked[0].label + " (פער " + ranked[0].err + " מנדטים)" });
+  }
+  usable.forEach((pl, i) => ev.push({ id: "ex-" + i, t: pl.date || "", txt: "📺 פורסם מדגם " + pl.label }));
+  if (!ev.length) ev.push({ id: "wait", t: "", txt: "🌙 מחכים ל-22:00 - המדגמים בדרך", live: true });
+  let seen = {};
+  try { seen = JSON.parse(sessionStorage.getItem("evseen26") || "{}"); } catch (e) {}
+  const html = '<div class="tmlog"><h3>🌙 ציר הלילה</h3>' + ev.map(e =>
+    '<div class="tm' + (e.live ? " live" : "") + (seen[e.id] === e.txt ? "" : " tmnew") + '">' +
+    (e.t ? '<span class="tmtime">' + escapeHtml(e.t) + "</span>" : "") + escapeHtml(e.txt) + "</div>").join("") + "</div>";
+  try { const o = {}; ev.forEach(e => o[e.id] = e.txt); sessionStorage.setItem("evseen26", JSON.stringify(o)); } catch (e) {}
+  return html;
 }
 
 function renderResults(mb, gflat) {
@@ -865,7 +1249,11 @@ function renderResults(mb, gflat) {
   const countedLine = COUNTED != null ? ' <span class="counted">🧮 נספרו ' + COUNTED + "% מהקולות</span>" : "";
   const base = RESULT_STAGE === "exit" ? null : exitAvgSeats(); // (3) בסיס המדגם לחצים
   // לוח מפלגות בסגנון גרפיקות הערוצים: תמונת מנהיג, מנדטים גדולים, שם מפלגה, ממוין לפי גודל
-  const tiles = [...PARTIES].sort((a, b) => res[b.id] - res[a.id]).map(p => {
+  const above = [...PARTIES].filter(p => res[p.id] > 0);
+  const belowThr = [...PARTIES].filter(p => res[p.id] === 0);
+  const shownParties = above.length ? above : [...PARTIES];
+  const notthr = (belowThr.length && above.length) ? '<div class="notthr">לא עברו את אחוז החסימה: ' + belowThr.map(p => p.name).join(" · ") + "</div>" : "";
+  const tiles = shownParties.sort((a, b) => res[b.id] - res[a.id]).map(p => {
     const d = base ? res[p.id] - (base[p.id] || 0) : 0;
     const delta = base && d !== 0 ? '<span class="delta ' + (d > 0 ? "dup" : "ddown") + '">' + (d > 0 ? "▲" : "▼") + Math.abs(d) + "</span>" : "";
     const pulse = lastRenderedSeats && lastRenderedSeats[p.id] !== undefined && lastRenderedSeats[p.id] !== res[p.id]
@@ -873,11 +1261,24 @@ function renderResults(mb, gflat) {
     const photo = LEADER_PHOTOS.has(p.id)
       ? '<div class="pphoto" style="background-image:url(/leaders/' + p.id + '.jpg)"></div>'
       : '<div class="pphoto pslip"><div class="slip"><div class="letters">' + p.letter + '</div><div class="tiny">' + p.name + '</div></div></div>';
-    return '<div class="ptile">' + photo +
-      '<div class="pseats' + pulse + '">' + res[p.id] + delta + "</div>" +
+    return '<div class="ptile" data-pid="' + p.id + '">' + photo +
+      '<div class="pseats' + pulse + '"><span class="fx-num" data-v="' + res[p.id] + '">' + res[p.id] + "</span>" + delta + "</div>" +
       '<div class="ptname" style="background:' + p.color + '">' + p.name + "</div></div>";
   }).join("");
   const srcs = comb.srcs.map(x => '<a href="' + x.src + '" target="_blank">' + escapeHtml(x.label) + " " + x.date + "</a>").join(" · ");
+  // מתג מדגמים (שלב המדגמים בלבד) + כרטיסי פיצול כשהערוצים חלוקים על המוביל
+  const usable = RESULT_STAGE === "exit" ? EXIT_POLLS.filter(pl => pl.seats) : [];
+  let switcher = "", divCards = "";
+  if (usable.length > 1) {
+    switcher = '<div class="chswitch">' +
+      '<button type="button" class="chpill' + (selectedExitChannel == null ? " active" : "") + '" data-ch="-1">ממוצע הערוצים</button>' +
+      usable.map((pl, i) => '<button type="button" class="chpill' + (selectedExitChannel === i ? " active" : "") + '" data-ch="' + i + '">' + escapeHtml(pl.label) + "</button>").join("") + "</div>";
+    const leaders = usable.map(pl => { let best = null; PARTIES.forEach(p => { const s = pl.seats[p.id] || 0; if (!best || s > best.s) best = { p, s }; }); return best; });
+    if (new Set(leaders.map(l => l.p.id)).size > 1) {
+      divCards = '<div class="chcards"><div class="chcap">⚡ המדגמים חלוקים על המוביל - לחצו לעבור בין המדגמים:</div><div class="chcardrow">' +
+        usable.map((pl, i) => '<button type="button" class="chcard" data-ch="' + i + '" style="border-color:' + leaders[i].p.color + '"><span class="chch">' + escapeHtml(pl.label) + '</span><span class="chld">' + leaders[i].p.name + " " + leaders[i].s + "</span></button>").join("") + "</div></div>";
+    }
+  }
   const lb = (list, title) => {
     if (!list.length) return "";
     const ranked = list.map(b => ({ ...b, score: scoreBet(b.parties, res) })).sort((a, b) => b.score - a.score || a.ts - b.ts);
@@ -893,12 +1294,24 @@ function renderResults(mb, gflat) {
     }).join("");
   };
   const deltaCap = base ? '<div class="deltacap">▲▼ = שינוי מול ממוצע מדגמי הערוצים מ-22:00</div>' : "";
+  const prevSeats = lastRenderedSeats;
   el.innerHTML = '<div class="resultsbox"><h2>' + stageLabel + countedLine + "</h2>" +
     '<div class="rssrc">מקורות: ' + srcs + "</div>" +
-    '<div class="pgrid">' + tiles + "</div>" + deltaCap + blocRace(res) +
+    switcher + divCards +
+    renderPodium(gflat, RESULT_STAGE === "official") +
+    '<div class="pgridwrap"><div class="pgrid">' + tiles + "</div>" + notthr + '</div>' + deltaCap + blocRace(res) +
     '<div class="pcredits">תמונות המנהיגים: <a href="https://github.com/YuvalHir/knesset26-bets/blob/main/public/leaders/CREDITS.md" target="_blank">ויקימדיה קומונס · רשיונות פתוחים וקרדיטים מלאים</a></div>' +
-    '<div class="landrow"><div class="lcol-t">' + channelTable(res) + '</div><div class="lcol-n">' + nightTimeline(res) + "</div></div>" +
+    '<div class="landrow">' + nightTimeline(res) + "</div>" +
     lb(mb, "🏆 מי הכי קרוב - " + group.name) + lb(gflat, "🏆 מי הכי קרוב - כל הקבוצות") + "</div>";
+  lastMb = mb; lastGflat = gflat;
+  el.querySelectorAll(".chpill,.chcard").forEach(b => b.addEventListener("click", () => {
+    const ch = parseInt(b.dataset.ch, 10);
+    selectedExitChannel = ch < 0 ? null : ch;
+    fxPrimed = false;
+    renderResults(lastMb, lastGflat);
+  }));
+  if (!FX.reduced) fxChoreograph(el, res, prevSeats, !fxPrimed);
+  fxPrimed = true;
   lastRenderedSeats = res;
 }
 
@@ -927,6 +1340,7 @@ function renderBets(el, bets, showGroup) {
 }
 
 async function loadStats() {
+  if (pendingTakeover) { const s = pendingTakeover; pendingTakeover = null; playTakeover(s, () => { fxPrimed = false; loadStats(); }); return; }
   $("#polllegend").innerHTML = poll ? '<span class="tick"></span>קו אפור = סקר ' + poll.label + ' (' + poll.date + '), להשוואה מול ממוצע ההימורים' : '';
   // הקבוצה הנוכחית
   $("#stats-title").textContent = "הקבוצה: " + group.name;
@@ -964,12 +1378,19 @@ async function pollResults() {
     const d = r.data || {};
     const same = (d.stage || "none") === RESULT_STAGE &&
       JSON.stringify(d.exitPolls || []) === JSON.stringify(EXIT_POLLS) &&
-      JSON.stringify(d.official || null) === JSON.stringify(OFFICIAL_RESULTS);
+      JSON.stringify(d.official || null) === JSON.stringify(OFFICIAL_RESULTS) &&
+      (typeof d.counted === "number" ? d.counted : null) === COUNTED;
     if (same) return;
-    RESULT_STAGE = d.stage || "none";
+    const newStage = d.stage || "none";
+    const stageChanged = newStage !== RESULT_STAGE;
+    RESULT_STAGE = newStage;
     EXIT_POLLS = Array.isArray(d.exitPolls) ? d.exitPolls : [];
     OFFICIAL_RESULTS = d.official || null;
-    if (!$("#view-stats").classList.contains("hidden")) loadStats();
+    COUNTED = typeof d.counted === "number" ? d.counted : null;
+    if (newStage === "none") fxPrimed = false;
+    const statsVisible = !$("#view-stats").classList.contains("hidden");
+    if (stageChanged && newStage !== "none") pendingTakeover = newStage;
+    if (statsVisible) loadStats();
   } catch (e) {}
 }
 setInterval(pollResults, 5000);
