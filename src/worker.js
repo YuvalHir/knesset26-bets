@@ -24,6 +24,9 @@ const PARTIES = [
 
 const GENERAL = { code: "GENERAL", name: "הקבוצה הכללית" };
 
+// תמונות מנהיגים מויקימדיה קומונס (public/leaders/, רשיונות ב-CREDITS.md). מי שאין לו תמונה שמישה מקבל פתק.
+const LEADER_PHOTOS = new Set(["yashar","likud","beyahad","democratim","meshutefet","shas","yahadut","tziyonut","otzma","beiteinu","raam","winter","miluim","noam"]);
+
 async function sha256hex(t) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
@@ -74,7 +77,7 @@ const OFFICIAL_RESULTS = null; // שלב 3: { date: "...", src: "https://...", s
 
 const BLOC_LABELS = { right: "קואליציה", center: "אופוזיציה", arab: "מפלגות ערביות", haredi: "הציבור החרדי", miluim: "הנדל-זליכה" };
 
-function renderHTML(RESULT_STAGE, EXIT_POLLS, OFFICIAL_RESULTS) {
+function renderHTML(RESULT_STAGE, EXIT_POLLS, OFFICIAL_RESULTS, COUNTED) {
 return `<!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -193,6 +196,137 @@ return `<!DOCTYPE html>
   footer { text-align:center; font-size:12px; opacity:.65; padding:0 16px 30px; line-height:1.8; }
   footer a { color:var(--blue); }
   .hidden { display:none !important; }
+
+  /* ===== תצוגת זמן-אמת מול המדגמים (25.10) ===== */
+  .counted { font-size:14px; font-weight:900; color:#8a5a00; background:#fff3d6; border-radius:999px; padding:2px 10px; margin-right:8px; }
+  .blocrace { margin:12px 0 16px; }
+  .brnums { display:flex; gap:16px; font-size:20px; font-weight:900; margin-bottom:18px; flex-wrap:wrap; }
+  .brtrack { position:relative; display:flex; height:26px; border-radius:999px; overflow:visible; background:#e5ebfb; }
+  .brseg { height:100%; }
+  .brseg:first-child { border-radius:0 999px 999px 0; }
+  .brseg:last-of-type { border-radius:999px 0 0 999px; }
+  .brmark61 { position:absolute; top:-4px; bottom:-4px; right:50.83%; border-right:3px solid var(--ink); box-shadow:1px 0 0 1px #fff, -1px 0 0 1px #fff; }
+  .brmark61 span { position:absolute; top:-21px; right:-16px; font-size:13px; font-weight:900; color:var(--ink); background:#fff; border:1px solid #c7d5f7; border-radius:999px; padding:0 8px; white-space:nowrap; }
+  .brlegend { font-size:12px; color:#5a6a96; margin-top:6px; line-height:1.5; }
+  .deltacap { font-size:12px; color:#5a6a96; margin:4px 0 10px; }
+  .tcard .tunit { font-size:13px; font-weight:700; opacity:.7; }
+  .th3 { margin:14px 0 6px; font-size:17px; color:var(--bluedark); }
+  .tcards { display:flex; gap:10px; margin:10px 0 16px; flex-wrap:wrap; }
+  .tcard { flex:1; min-width:130px; border-radius:12px; padding:10px; text-align:center; border:1.5px solid; background:#fff; }
+  .tcard.tin { border-color:#16a34a; background:#f0fdf4; }
+  .tcard.tout { border-color:#dc2626; background:#fef2f2; }
+  .tcard .tname { font-size:13px; font-weight:700; }
+  .tcard .tval { font-size:30px; font-weight:900; line-height:1.15; }
+  .tcard .tlamp { font-size:13px; font-weight:900; }
+  .tcard.tin .tlamp { color:#16a34a; }
+  .tcard.tout .tlamp { color:#dc2626; }
+  .tcard.tflip { animation:tflip .9s ease 3; }
+  @keyframes tflip { 50% { transform:scale(1.09); } }
+  .avgrow .v { width:auto; min-width:44px; }
+  .delta { font-size:12px; font-weight:900; margin-right:5px; }
+  .delta.dup { color:#16a34a; }
+  .delta.ddown { color:#dc2626; }
+  @keyframes pulseUp { 0% { background:#bbf7d0; } 100% { background:transparent; } }
+  @keyframes pulseDown { 0% { background:#fecaca; } 100% { background:transparent; } }
+  .pulse-up { animation:pulseUp 2.5s ease; border-radius:6px; padding:0 4px; }
+  .pulse-down { animation:pulseDown 2.5s ease; border-radius:6px; padding:0 4px; }
+  .chantbl { width:100%; border-collapse:collapse; font-size:13.5px; margin-bottom:6px; }
+  .chantbl th, .chantbl td { border-bottom:1px solid #eef2fb; padding:5px 6px; text-align:center; }
+  .chantbl th:first-child, .chantbl td:first-child { text-align:right; font-weight:700; }
+  .chantbl a { color:var(--blue); text-decoration:none; }
+  .whosright { font-size:15px; font-weight:700; color:var(--bluedark); margin:6px 0 12px; }
+  .tmlog { margin:10px 0 14px; font-size:13px; color:#5a6a96; }
+  .tmlog .tm { padding:3px 0; border-bottom:1px dashed #eef2fb; }
+  /* מצב מסיבה: לוח תוצאות גדול וכהה לטאבלט */
+  body.party { background:#0b0f1a; }
+  body.party header, body.party .tabs, body.party #view-bet, body.party footer, body.party .flagstar { display:none !important; }
+  body.party #view-stats > *:not(#results) { display:none !important; }
+  body.party #view-stats { max-width:1100px; }
+  body.party .resultsbox { background:#111827; border-color:#26314a; color:#e5e7eb; padding:22px; }
+  body.party .resultsbox h2 { color:#93c5fd; font-size:30px; }
+  body.party .resultsbox h3 { color:#cbd5f5; font-size:24px; }
+  body.party .rssrc { color:#9aa7c7; font-size:16px; }
+  body.party .rssrc a { color:#93c5fd; }
+  body.party .brnums { font-size:34px; }
+  body.party .brtrack { height:40px; }
+  body.party .brmark61 { border-right-color:#fff; box-shadow:none; }
+  body.party .brmark61 span { color:#0b0f1a; font-size:16px; top:-26px; background:#93c5fd; border-color:#93c5fd; }
+  body.party .brlegend { color:#9aa7c7; font-size:15px; }
+  body.party .deltacap { color:#9aa7c7; font-size:15px; }
+  body.party .th3 { color:#cbd5f5; font-size:24px; }
+  body.party .tcard .tunit { font-size:17px; }
+  body.party .counted { font-size:18px; }
+  body.party .avgrow .slip { width:64px; height:78px; }
+  body.party .avgrow .slip .letters { font-size:26px; }
+  body.party .avgrow .n { width:200px; font-size:20px; color:#e5e7eb; }
+  body.party .avgrow .track { height:30px; background:#1f2937; }
+  body.party .avgrow .v { font-size:28px; color:#fff; }
+  body.party .delta { font-size:18px; }
+  body.party .tcard { background:#1f2937; }
+  body.party .tcard.tin { background:#052e16; border-color:#16a34a; }
+  body.party .tcard.tout { background:#2a0a0a; border-color:#dc2626; }
+  body.party .tcard .tname { color:#e5e7eb; font-size:18px; }
+  body.party .tcard .tval { font-size:44px; color:#fff; }
+  body.party .tcard .tlamp { font-size:18px; }
+  body.party .chantbl { font-size:19px; color:#e5e7eb; }
+  body.party .chantbl th, body.party .chantbl td { border-color:#26314a; }
+  body.party .chantbl a { color:#93c5fd; }
+  body.party .whosright { color:#93c5fd; font-size:22px; }
+  body.party .tmlog { color:#9aa7c7; font-size:17px; }
+  body.party .tmlog .tm { border-color:#26314a; }
+  body.party .lrow { font-size:22px; color:#e5e7eb; border-top-color:#26314a; }
+  body.party .lrow .lscore { color:#93c5fd; }
+  body.party .lrow.win { background:#3a2e05; }
+
+  /* לוח מפלגות בסגנון גרפיקות הערוצים (25.10) */
+  .pgrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:12px 0 6px; }
+  .ptile { border-radius:14px; overflow:hidden; background:#fff; border:1px solid #dbe4f7; position:relative; box-shadow:0 1px 4px #101b3c14; }
+  .pphoto { height:110px; background-size:cover; background-position:center 15%; background-color:#e5ebfb; position:relative; }
+  .pphoto::after { content:""; position:absolute; inset:auto 0 0 0; height:55%; background:linear-gradient(transparent,#00000099); }
+  .pphoto.pslip { display:flex; align-items:center; justify-content:center; background:linear-gradient(#f7f9ff,#e9eefb); }
+  .pphoto.pslip::after { display:none; }
+  .pphoto.pslip .slip { width:56px; height:70px; }
+  .pphoto.pslip .slip .letters { font-size:22px; }
+  .pphoto.pslip .slip .tiny { display:block; font-size:8px; }
+  .pseats { position:absolute; top:62px; right:10px; z-index:2; font-size:38px; font-weight:900; color:#fff; text-shadow:0 2px 8px #000c, 0 0 3px #000a; line-height:1; }
+  .pseats .delta { font-size:15px; font-weight:900; text-shadow:0 1px 4px #000c; margin-right:4px; }
+  .ptname { color:#fff; font-weight:900; font-size:14px; text-align:center; padding:6px 4px; line-height:1.25; min-height:38px; display:flex; align-items:center; justify-content:center; }
+  .pcredits { font-size:11px; color:#8a97bd; margin:2px 0 12px; }
+  .pcredits a { color:inherit; }
+  body.party .ptile { background:#111827; border-color:#26314a; }
+  body.party .pphoto { height:120px; }
+  body.party .pphoto.pslip { background:linear-gradient(#1f2937,#111827); }
+  body.party .pseats { top:74px; font-size:42px; }
+  body.party .ptname { font-size:14px; min-height:38px; padding:5px 4px; }
+  body.party .pcredits { color:#9aa7c7; }
+  @media (min-width:700px) { .pgrid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+  /* פריסה לרוחב (טאבלט/מחשב): מפלגות זו לצד זו, טבלה וציר זמן זה לצד זה */
+  @media (min-width:1000px) {
+    .pgrid { grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; }
+    body.party .pgrid { gap:10px; margin:10px 0 4px; }
+    .landrow { display:flex; gap:14px; align-items:flex-start; }
+    .lcol-t { flex:1.35; min-width:0; }
+    .lcol-n { flex:1; min-width:0; }
+    .chantbl { font-size:12px; }
+    .chantbl th, .chantbl td { padding:3px 5px; }
+    body.party .resultsbox { padding:16px 18px; }
+    body.party .resultsbox h2 { font-size:24px; }
+    body.party .resultsbox h3, body.party .th3 { font-size:19px; }
+    body.party .rssrc { font-size:13px; }
+    body.party .brnums { font-size:26px; margin-bottom:16px; }
+    body.party .brtrack { height:32px; }
+    body.party .brlegend, body.party .deltacap { font-size:13px; }
+    body.party .counted { font-size:15px; }
+    body.party .delta { font-size:14px; }
+    body.party .tcard .tname { font-size:15px; }
+    body.party .tcard .tval { font-size:34px; }
+    body.party .tcard .tlamp { font-size:14px; }
+    body.party .tcard .tunit { font-size:14px; }
+    body.party .chantbl { font-size:14px; }
+    body.party .whosright { font-size:16px; }
+    body.party .tmlog { font-size:14px; }
+    body.party .brmark61 span { font-size:14px; top:-24px; }
+  }
 </style>
 </head>
 <body>
@@ -290,8 +424,10 @@ return `<!DOCTYPE html>
 
 <script>
 const PARTIES = ${JSON.stringify(PARTIES)};
+const LEADER_PHOTOS = new Set(${JSON.stringify([...LEADER_PHOTOS])});
 const POLLS = ${JSON.stringify(POLLS)};
 let RESULT_STAGE = ${JSON.stringify(RESULT_STAGE)};
+let COUNTED = ${JSON.stringify(COUNTED ?? null)};
 const SCORING_APPROVED = ${JSON.stringify(SCORING_APPROVED)};
 let EXIT_POLLS = ${JSON.stringify(EXIT_POLLS)};
 let OFFICIAL_RESULTS = ${JSON.stringify(OFFICIAL_RESULTS)};
@@ -318,6 +454,7 @@ const LOGOS = {
 };
 let poll = null;
 let group = null; // {code, name}
+const PARTY_MODE = new URLSearchParams(location.search).get("mode") === "party"; // מצב טאבלט: לוח תוצאות גדול וכהה (הצגה בלבד)
 
 function total() { return Object.values(state).reduce((a,b)=>a+b,0); }
 function pollSeats(id) { return poll ? (poll.seats[id] || 0) : 0; }
@@ -392,6 +529,15 @@ $("#joing").addEventListener("click", async () => {
 
 // כניסה אוטומטית: קוד בקישור או קבוצה שמורה
 (async () => {
+  if (PARTY_MODE) {
+    document.body.classList.add("party");
+    const g0 = (new URLSearchParams(location.search).get("g") || localStorage.getItem("groupCode") || GENERAL.code).toUpperCase();
+    const r0 = g0 === GENERAL.code ? { ok: true, data: GENERAL } : await api("/api/group?code=" + encodeURIComponent(g0));
+    await enterGroup(r0.ok ? r0.data : GENERAL);
+    history.replaceState(null, "", "?mode=party" + (group.code !== GENERAL.code ? "&g=" + group.code : ""));
+    switchTab("stats");
+    return;
+  }
   const urlCode = new URLSearchParams(location.search).get("g");
   const saved = localStorage.getItem("groupCode");
   const code = (urlCode || saved || "").toUpperCase();
@@ -652,19 +798,85 @@ function scoreBet(bet, res) {
   return 100 - err;
 }
 
+// ===== תצוגת זמן-אמת מול המדגמים (אושר ע"י יובל 25.10) =====
+let lastRenderedSeats = null;
+
+// ממוצע מדגמים (שלב 1) - הבסיס להשוואה "מול המדגם" בשלבים המאוחרים
+function exitAvgSeats() {
+  const usable = EXIT_POLLS.filter(pl => pl.seats);
+  if (!usable.length) return null;
+  const raw = {}, floors = {};
+  PARTIES.forEach(p => { raw[p.id] = usable.reduce((a, pl) => a + (pl.seats[p.id] || 0), 0) / usable.length; floors[p.id] = Math.floor(raw[p.id]); });
+  let sum = PARTIES.reduce((a, p) => a + floors[p.id], 0);
+  const byRem = [...PARTIES].sort((a, b) => (raw[b.id] - floors[b.id]) - (raw[a.id] - floors[a.id]));
+  for (let i = 0; sum < 120 && i < byRem.length; i++, sum++) floors[byRem[i].id]++;
+  return floors;
+}
+
+// (2) המרוץ ל-61: סרגל גושים עם קו 61
+function blocRace(res) {
+  const bs = blocSums(res);
+  const coal = bs.right; // עמך ישראל (וינטר) ונעם נספרים בגוש הימין (bloc: right)
+  const arab = bs.arab; // המשותפת ורע״מ - צבע נפרד, בצד האופוזיציה
+  const opp = 120 - coal - arab; // אופוזיציה (לא ערבית): כולל הנדל-זליכה
+  return '<div class="blocrace"><div class="brnums"><span style="color:#1f4e9c">קואליציה ' + coal + '</span><span style="color:#c1121f">אופוזיציה ' + opp + '</span><span style="color:#166534">ערביות ' + arab + '</span></div>' +
+    '<div class="brtrack">' +
+      '<div class="brseg" style="width:' + (coal / 120 * 100) + '%;background:#1f4e9c"></div>' +
+      '<div class="brseg" style="width:' + (opp / 120 * 100) + '%;background:#c1121f"></div>' +
+      '<div class="brseg" style="width:' + (arab / 120 * 100) + '%;background:#166534"></div>' +
+      '<div class="brmark61"><span>61 = רוב</span></div>' +
+    '</div>' +
+    '<div class="brlegend">קואליציה (כחול): ליכוד, ש״ס, יהדות התורה, הציונות הדתית-זהות, עוצמה יהודית (ועמך ישראל אם נכנס) · אופוזיציה (אדום): כל שאר המפלגות, כולל הנדל-זליכה · ערביות (ירוק): המשותפת ורע״מ - נספרות בצד האופוזיציה</div></div>';
+}
+
+// (1) כל מדגם בפני עצמו + מי הכי קרוב לאמת
+function channelTable(res) {
+  const usable = EXIT_POLLS.filter(pl => pl.seats);
+  if (!usable.length) return "";
+  const avg = exitAvgSeats() || {};
+  const shown = PARTIES.filter(p => usable.some(pl => (pl.seats[p.id] || 0) > 0));
+  const head = "<tr><th>מפלגה</th>" + usable.map(pl => '<th><a href="' + pl.src + '" target="_blank">' + escapeHtml(pl.label) + (pl.date ? " · " + pl.date : "") + "</a></th>").join("") + "<th>ממוצע</th></tr>";
+  const rows = shown.map(p => "<tr><td>" + p.name + "</td>" + usable.map(pl => "<td>" + (pl.seats[p.id] || 0) + "</td>").join("") + "<td><b>" + (avg[p.id] || 0) + "</b></td></tr>").join("");
+  let whosRight = "";
+  if (RESULT_STAGE !== "exit") {
+    const ranked = usable.map(pl => ({ label: pl.label, err: PARTIES.reduce((a, p) => a + Math.abs((pl.seats[p.id] || 0) - (res[p.id] || 0)), 0) })).sort((a, b) => a.err - b.err);
+    if (ranked.length) whosRight = '<div class="whosright">🏆 הכי קרוב לאמת כרגע: <b>' + escapeHtml(ranked[0].label) + "</b> (פער " + ranked[0].err + " מנדטים)</div>";
+  }
+  return "<h3>📺 כל מדגם בפני עצמו</h3>" + '<table class="chantbl">' + head + rows + "</table>" + whosRight;
+}
+
+// (7) ציר הלילה: אירועים נוכחיים, נבנה מחדש בכל רינדור
+function nightTimeline(res) {
+  const ev = [];
+  if (RESULT_STAGE === "official") ev.push("✔ תוצאות אמת מלאות");
+  if (RESULT_STAGE === "exit_actual") ev.push("⏳ החלו תוצאות האמת של קלפיות המדגם");
+  if (COUNTED != null) ev.push("🧮 נספרו " + COUNTED + "% מהקולות");
+  EXIT_POLLS.filter(pl => pl.seats).forEach(pl => ev.push("📺 פורסם מדגם " + pl.label + (pl.date ? " (" + pl.date + ")" : "")));
+  return '<div class="tmlog"><h3>🌙 ציר הלילה</h3>' + ev.map(t => '<div class="tm">' + t + "</div>").join("") + "</div>";
+}
+
 function renderResults(mb, gflat) {
   const el = $("#results");
   const comb = combinedResults();
-  if (!comb) { el.innerHTML = ""; return; }
+  if (!comb) { el.innerHTML = ""; lastRenderedSeats = null; return; }
   const res = comb.seats;
   const stageLabel = RESULT_STAGE === "official" ? "תוצאות אמת מלאות ✔"
     : (RESULT_STAGE === "exit_actual" ? "תוצאות האמת של קלפיות המדגם - זמני ⏳" : "מדגמי הערוצים - זמני ⏳");
-  const maxV = Math.max(...PARTIES.map(p => res[p.id]), 1);
-  const bars = [...PARTIES].sort((a, b) => res[b.id] - res[a.id]).map(p =>
-    '<div class="avgrow"><div class="slip"><div class="letters">' + p.letter + '</div><div class="tiny">' + p.name + '</div></div>' +
-    '<div class="n">' + p.name + '</div>' +
-    '<div class="track"><div class="fill" style="width:' + (res[p.id] / maxV * 100) + '%;background:' + p.color + '"></div></div>' +
-    '<div class="v">' + res[p.id] + '</div></div>').join("");
+  const countedLine = COUNTED != null ? ' <span class="counted">🧮 נספרו ' + COUNTED + "% מהקולות</span>" : "";
+  const base = RESULT_STAGE === "exit" ? null : exitAvgSeats(); // (3) בסיס המדגם לחצים
+  // לוח מפלגות בסגנון גרפיקות הערוצים: תמונת מנהיג, מנדטים גדולים, שם מפלגה, ממוין לפי גודל
+  const tiles = [...PARTIES].sort((a, b) => res[b.id] - res[a.id]).map(p => {
+    const d = base ? res[p.id] - (base[p.id] || 0) : 0;
+    const delta = base && d !== 0 ? '<span class="delta ' + (d > 0 ? "dup" : "ddown") + '">' + (d > 0 ? "▲" : "▼") + Math.abs(d) + "</span>" : "";
+    const pulse = lastRenderedSeats && lastRenderedSeats[p.id] !== undefined && lastRenderedSeats[p.id] !== res[p.id]
+      ? (res[p.id] > lastRenderedSeats[p.id] ? " pulse-up" : " pulse-down") : ""; // (6) פעימה כשמספר זז
+    const photo = LEADER_PHOTOS.has(p.id)
+      ? '<div class="pphoto" style="background-image:url(/leaders/' + p.id + '.jpg)"></div>'
+      : '<div class="pphoto pslip"><div class="slip"><div class="letters">' + p.letter + '</div><div class="tiny">' + p.name + '</div></div></div>';
+    return '<div class="ptile">' + photo +
+      '<div class="pseats' + pulse + '">' + res[p.id] + delta + "</div>" +
+      '<div class="ptname" style="background:' + p.color + '">' + p.name + "</div></div>";
+  }).join("");
   const srcs = comb.srcs.map(x => '<a href="' + x.src + '" target="_blank">' + escapeHtml(x.label) + " " + x.date + "</a>").join(" · ");
   const lb = (list, title) => {
     if (!list.length) return "";
@@ -680,10 +892,14 @@ function renderResults(mb, gflat) {
         '<span class="lscore">' + b.score.toFixed(2) + "</span></div>";
     }).join("");
   };
-  el.innerHTML = '<div class="resultsbox"><h2>' + stageLabel + "</h2>" +
-    '<div class="rssrc">מקורות: ' + srcs + "</div>" + bars +
-    lb(mb, "🏆 מי הכי קרוב - " + group.name) +
-    lb(gflat, "🏆 מי הכי קרוב - כל הקבוצות") + "</div>";
+  const deltaCap = base ? '<div class="deltacap">▲▼ = שינוי מול ממוצע מדגמי הערוצים מ-22:00</div>' : "";
+  el.innerHTML = '<div class="resultsbox"><h2>' + stageLabel + countedLine + "</h2>" +
+    '<div class="rssrc">מקורות: ' + srcs + "</div>" +
+    '<div class="pgrid">' + tiles + "</div>" + deltaCap + blocRace(res) +
+    '<div class="pcredits">תמונות המנהיגים: <a href="https://github.com/YuvalHir/knesset26-bets/blob/main/public/leaders/CREDITS.md" target="_blank">ויקימדיה קומונס · רשיונות פתוחים וקרדיטים מלאים</a></div>' +
+    '<div class="landrow"><div class="lcol-t">' + channelTable(res) + '</div><div class="lcol-n">' + nightTimeline(res) + "</div></div>" +
+    lb(mb, "🏆 מי הכי קרוב - " + group.name) + lb(gflat, "🏆 מי הכי קרוב - כל הקבוצות") + "</div>";
+  lastRenderedSeats = res;
 }
 
 function renderBets(el, bets, showGroup) {
@@ -776,11 +992,12 @@ async function currentResults(env) {
         stage: typeof d.stage === "string" ? d.stage : RESULT_STAGE,
         exitPolls: Array.isArray(d.exitPolls) ? d.exitPolls : EXIT_POLLS,
         official: d.official !== undefined ? d.official : OFFICIAL_RESULTS,
+        counted: typeof d.counted === "number" ? d.counted : null,
         updated: d.ts || null
       };
     }
   } catch (e) { /* results_data may not exist yet - fall back to constants */ }
-  return { stage: RESULT_STAGE, exitPolls: EXIT_POLLS, official: OFFICIAL_RESULTS, updated: null };
+  return { stage: RESULT_STAGE, exitPolls: EXIT_POLLS, official: OFFICIAL_RESULTS, counted: null, updated: null };
 }
 
 function json(data, status = 200) {
@@ -833,6 +1050,8 @@ async function getGroup(env, code) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (url.pathname.startsWith("/leaders/")) return env.ASSETS.fetch(request);
 
     if (url.pathname === "/api/group" && request.method === "POST") {
       let body;
@@ -903,6 +1122,6 @@ export default {
 
     if (url.pathname === "/health") return json({ ok: true });
     const R = await currentResults(env);
-    return new Response(renderHTML(R.stage, R.exitPolls, R.official), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+    return new Response(renderHTML(R.stage, R.exitPolls, R.official, R.counted), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
   },
 };
