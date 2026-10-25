@@ -982,8 +982,8 @@ $("#tab-stats").addEventListener("click", () => switchTab("stats"));
 }
 
 async function currentResults(env) {
-  // Isolated single-row results store (results_data), written only via authenticated
-  // wrangler OAuth - never a public endpoint - so data updates need no code deploy.
+  // Isolated single-row results store (results_data), written only via the authenticated
+  // /api/admin/results endpoint (מפתח ב-wrangler secret) - so data updates need no code deploy.
   try {
     const row = await env.BETS_DB.prepare("SELECT payload FROM results_data WHERE id = 1").first();
     if (row && row.payload) {
@@ -1079,6 +1079,44 @@ export default {
 
     if (url.pathname === "/api/results") {
       return json(await currentResults(env));
+    }
+
+    // כתיבת תוצאות (מדגמים/אמת) עם מפתח ניהול בלבד - רשומה אחת ב-results_data, אין גישה להימורים/קבוצות
+    if (url.pathname === "/api/admin/results" && request.method === "POST") {
+      const expected = env.RESULTS_ADMIN_KEY || "";
+      const given = request.headers.get("x-admin-key") || "";
+      const enc = new TextEncoder();
+      const a = enc.encode(given), b = enc.encode(expected);
+      let ok = a.length > 0 && a.length === b.length;
+      if (ok) { let diff = 0; for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i]; ok = diff === 0; }
+      if (!ok) return json({ error: "unauthorized" }, 401);
+      let body;
+      try { body = await request.json(); } catch { return json({ error: "json" }, 400); }
+      const stage = String(body.stage || "");
+      if (!["none", "exit", "exit_actual", "official"].includes(stage)) return json({ error: "stage לא תקין" }, 400);
+      const cleanPoll = (pl) => {
+        if (!pl || typeof pl !== "object") return null;
+        const seatsOk = (s) => s && typeof s === "object" && Object.values(s).every(v => typeof v === "number" && v >= 0 && v <= 120);
+        const out = { label: String(pl.label || "").slice(0, 40), src: String(pl.src || "").slice(0, 300), date: String(pl.date || "").slice(0, 20) };
+        if (!out.label || !/^https?:\/\//.test(out.src)) return null;
+        if (seatsOk(pl.seats)) out.seats = pl.seats;
+        if (seatsOk(pl.actualSeats)) out.actualSeats = pl.actualSeats;
+        return (out.seats || out.actualSeats) ? out : null;
+      };
+      const exitPolls = (Array.isArray(body.exitPolls) ? body.exitPolls : []).slice(0, 12).map(cleanPoll).filter(Boolean);
+      let official = null;
+      if (body.official && typeof body.official === "object") {
+        const o = body.official;
+        if (o.seats && typeof o.seats === "object" && Object.values(o.seats).every(v => typeof v === "number" && v >= 0 && v <= 120)
+            && /^https?:\/\//.test(String(o.src || ""))) {
+          official = { seats: o.seats, src: String(o.src).slice(0, 300), date: String(o.date || "").slice(0, 20) };
+        }
+      }
+      const counted = typeof body.counted === "number" && body.counted >= 0 && body.counted <= 100 ? body.counted : null;
+      const payload = { stage, exitPolls, official, counted, ts: Date.now() };
+      await env.BETS_DB.prepare("INSERT INTO results_data (id, payload, ts) VALUES (1, ?, ?) ON CONFLICT(id) DO UPDATE SET payload = excluded.payload, ts = excluded.ts")
+        .bind(JSON.stringify(payload), payload.ts).run();
+      return json({ ok: true, ts: payload.ts });
     }
 
     if (url.pathname === "/api/bets") {
