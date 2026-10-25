@@ -387,6 +387,7 @@ return `<!DOCTYPE html>
     grid-template-areas:"head head" "src src" "hero hero" "chsw chsw" "chcd chcd" "pod grid" "bloc grid" "land grid" "cred cred"; }
   body.party .resultsbox > .chswitch { grid-area:chsw; }
   body.party .resultsbox > .chhero { grid-area:hero; }
+  body.party .resultsbox { min-height:94vh; align-content:center; }
   body.party .resultsbox > .chcards { grid-area:chcd; }
   body.party .resultsbox > h2 { grid-area:head; margin:0 0 2px; }
   body.party .resultsbox > .rssrc { grid-area:src; }
@@ -553,6 +554,8 @@ return `<!DOCTYPE html>
   body.party .chhero { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); border-top-color:rgba(255,255,255,.30); border-radius:22px; padding:10px 16px; backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%); box-shadow:inset 0 1px 0 0 rgba(255,255,255,.18), 0 14px 34px -14px rgba(0,0,0,.6); }
   body.party .chcardrow { display:flex; gap:8px; flex-wrap:wrap; }
   body.party .chcardrow { justify-content:center; }
+  body.party .cardprog { justify-content:center; margin-top:8px; }
+  body.party .cardprog .rotseg { width:44px; }
   body.party .chcard { flex:0 1 auto; display:flex; align-items:center; justify-content:center; border-radius:16px; padding:8px 18px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); color:#fff; cursor:pointer; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); font-family:inherit; min-width:86px; min-height:52px; }
   body.party .chcard .chlogo { height:34px; width:auto; max-width:120px; object-fit:contain; }
   body.party .chcard.chavg { font-size:26px; line-height:1; }
@@ -1492,16 +1495,12 @@ function renderResults(mb, gflat) {
   const srcs = comb.srcs.map(x => '<a href="' + x.src + '" target="_blank">' + escapeHtml(x.label) + " " + x.date + "</a>").join(" · ");
   // מתג מדגמים (שלב המדגמים בלבד) + כרטיסי פיצול כשהערוצים חלוקים על המוביל
   const usable = RESULT_STAGE === "exit" ? EXIT_POLLS.filter(pl => pl.seats) : [];
-  let switcher = "", hero = "", divCards = "";
+  let switcher = "", hero = "", divCards = "", prog = "";
   if (usable.length > 1) {
     if (PARTY_MODE) {
-      const cur = selectedExitChannel == null ? null : usable[selectedExitChannel];
       const pos = selectedExitChannel == null ? 0 : selectedExitChannel + 1;
-      const prog = '<div class="rotprog"><button type="button" class="rotseg' + (pos === 0 ? " on" : " done") + '" data-ch="-1"><span class="fill"></span></button>' +
+      prog = '<div class="rotprog cardprog"><button type="button" class="rotseg' + (pos === 0 ? " on" : " done") + '" data-ch="-1"><span class="fill"></span></button>' +
         usable.map((pl, i) => '<button type="button" class="rotseg' + (pos === i + 1 ? " on" : pos > i + 1 ? " done" : "") + '" data-ch="' + i + '"><span class="fill"></span></button>').join("") + "</div>";
-      hero = cur
-        ? '<div class="chhero chonly">' + logoImg(cur.label) + prog + "</div>"
-        : '<div class="chhero"><div class="htext"><div class="hlabel">ממוצע משוכלל</div>' + prog + '</div><span class="hlogos">' + usable.map(pl => logoImg(pl.label)).join("") + "</span></div>";
     } else {
       switcher = '<div class="chswitch">' +
         '<button type="button" class="chpill' + (selectedExitChannel == null ? " active" : "") + '" data-ch="-1">ממוצע הערוצים</button>' +
@@ -1512,7 +1511,7 @@ function renderResults(mb, gflat) {
     if (PARTY_MODE) {
       divCards = '<div class="chcards">' + (divided ? '<div class="chcap">⚡ המדגמים חלוקים על המוביל - לחצו לעבור בין המדגמים:</div>' : "") + '<div class="chcardrow">' +
         '<button type="button" class="chcard chavg' + (selectedExitChannel == null ? " on" : "") + '" data-ch="-1" title="ממוצע משוכלל">🗳️</button>' +
-        usable.map((pl, i) => '<button type="button" class="chcard' + (selectedExitChannel === i ? " on" : "") + '" data-ch="' + i + '" title="' + escapeHtml(pl.label) + '">' + logoImg(pl.label) + "</button>").join("") + "</div></div>";
+        usable.map((pl, i) => '<button type="button" class="chcard' + (selectedExitChannel === i ? " on" : "") + '" data-ch="' + i + '" title="' + escapeHtml(pl.label) + '">' + logoImg(pl.label) + "</button>").join("") + "</div>" + prog + "</div>";
     } else if (divided) {
       divCards = '<div class="chcards"><div class="chcap">⚡ המדגמים חלוקים על המוביל - לחצו לעבור בין המדגמים:</div><div class="chcardrow">' +
         usable.map((pl, i) => '<button type="button" class="chcard" data-ch="' + i + '" style="border-color:' + leaders[i].p.color + '"><span class="chch">' + escapeHtml(pl.label) + '</span><span class="chld">' + leaders[i].p.name + " " + leaders[i].s + "</span></button>").join("") + "</div></div>";
@@ -1535,11 +1534,11 @@ function renderResults(mb, gflat) {
   const deltaCap = base ? '<div class="deltacap">▲▼ = שינוי מול ממוצע מדגמי הערוצים מ-22:00</div>' : "";
   const prevSeats = lastRenderedSeats;
   el.innerHTML = '<div class="resultsbox"><h2>' + (PARTY_MODE ? '<span class="livebadge"><i></i>עדכון חי</span> ' : "") + stageLabel + countedLine + "</h2>" +
-    '<div class="rssrc">מקורות: ' + srcs + "</div>" +
+    (PARTY_MODE ? "" : '<div class="rssrc">מקורות: ' + srcs + "</div>") +
     switcher + hero + divCards +
     renderPodium(gflat, RESULT_STAGE === "official") +
     '<div class="pgridwrap"><div class="pgrid">' + tiles + "</div>" + notthr + '</div>' + deltaCap + blocRace(res) +
-    '<div class="pcredits">תמונות המנהיגים: <a href="https://github.com/YuvalHir/knesset26-bets/blob/main/public/leaders/CREDITS.md" target="_blank">ויקימדיה קומונס · רשיונות פתוחים וקרדיטים מלאים</a></div>' +
+    '<div class="pcredits">' + (PARTY_MODE ? "מקורות: " + srcs + ' <span class="credsep">·</span> ' : "") + 'תמונות המנהיגים: <a href="https://github.com/YuvalHir/knesset26-bets/blob/main/public/leaders/CREDITS.md" target="_blank">ויקימדיה קומונס · רשיונות פתוחים וקרדיטים מלאים</a></div>' +
     '<div class="landrow">' + nightTimeline(res) + "</div>" +
     lb(mb, "🏆 מי הכי קרוב - " + group.name) + lb(gflat, "🏆 מי הכי קרוב - כל הקבוצות") + "</div>";
   lastMb = mb; lastGflat = gflat;
