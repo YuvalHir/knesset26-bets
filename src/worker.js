@@ -455,7 +455,8 @@ return `<!DOCTYPE html>
     body.party .blocrace { margin:8px 0 2px !important; }
     body.party .pcredits { font-size:9px; }
     body.party .chhero { margin:0 0 2px; gap:12px; }
-    body.party .chhero .chlogo { height:44px; border-radius:10px; padding:4px 12px; }
+    body.party .chhero .chlogo { height:44px; }
+    body.party .chhero.chonly .chlogo { height:52px; }
     body.party .chhero .hlogos .chlogo { height:30px; }
     body.party .chhero .hlabel { font-size:18px; }
     body.party .chhero .hsub { font-size:10.5px; margin-top:1px; }
@@ -527,9 +528,11 @@ return `<!DOCTYPE html>
   body.party .tmlog .tm .tmtime { color:#7c8cb0; }
   body.party .scorefoot { color:#7c8cb0; }
   .chhero { display:flex; align-items:center; gap:16px; margin:4px 0 6px; }
-  .chhero .chlogo { height:60px; width:auto; max-width:180px; object-fit:contain; background:#fff; border-radius:14px; padding:6px 16px; box-shadow:0 8px 28px rgba(0,0,0,.45); }
+  .chhero .chlogo { height:60px; width:auto; max-width:200px; object-fit:contain; filter:drop-shadow(0 6px 18px rgba(0,0,0,.5)); }
+  .chhero.chonly { flex-direction:column; align-items:center; gap:9px; padding-top:12px; }
+  .chhero.chonly .chlogo { height:72px; max-width:260px; }
   .chhero .hlogos { display:inline-flex; gap:10px; flex-wrap:wrap; }
-  .chhero .hlogos .chlogo { height:38px; max-width:110px; border-radius:10px; padding:4px 10px; }
+  .chhero .hlogos .chlogo { height:38px; max-width:110px; }
   .chhero .hlabel { font-size:23px; font-weight:900; color:#fff; line-height:1.15; }
   .chhero .hsub { font-size:12px; color:#8ea0c8; margin-top:2px; }
   .rotprog { display:flex; gap:6px; margin-top:8px; }
@@ -549,14 +552,11 @@ return `<!DOCTYPE html>
   body.party .ptile::before { content:""; position:absolute; top:-28px; left:-28px; width:88px; height:88px; border-radius:50%; background:var(--pc,#3b82f6); opacity:.25; filter:blur(26px); pointer-events:none; z-index:1; }
   body.party .chhero { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); border-top-color:rgba(255,255,255,.30); border-radius:22px; padding:10px 16px; backdrop-filter:blur(20px) saturate(180%); -webkit-backdrop-filter:blur(20px) saturate(180%); box-shadow:inset 0 1px 0 0 rgba(255,255,255,.18), 0 14px 34px -14px rgba(0,0,0,.6); }
   body.party .chcardrow { display:flex; gap:8px; flex-wrap:wrap; }
-  body.party .chcard { flex:1 1 150px; display:flex; align-items:center; gap:10px; border-radius:16px; padding:6px 12px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); color:#fff; cursor:pointer; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); font-family:inherit; }
-  body.party .chcard .chlogo { height:30px; width:auto; max-width:64px; background:#fff; border-radius:8px; padding:2px 6px; }
-  body.party .chcard .chtx { display:flex; flex-direction:column; align-items:flex-start; min-width:0; }
-  body.party .chcard .chch { font-size:10.5px; font-weight:700; color:rgba(255,255,255,.62); }
-  body.party .chcard .chld { font-size:14px; font-weight:900; white-space:nowrap; color:#fff; }
-  body.party .chcard .chgo { font-size:10.5px; font-weight:800; padding:3px 10px; border-radius:999px; background:rgba(255,255,255,.10); color:rgba(255,255,255,.72); margin-right:4px; }
-  body.party .chcard.on { background:linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.06)); border-color:rgba(255,255,255,.42); box-shadow:0 10px 26px -10px rgba(0,0,0,.6), inset 0 1px 1px rgba(255,255,255,.25); }
-  body.party .chcard.on .chgo { background:#fff; color:#0b0f1a; }
+  body.party .chcardrow { justify-content:center; }
+  body.party .chcard { flex:0 1 auto; display:flex; align-items:center; justify-content:center; border-radius:16px; padding:8px 18px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); color:#fff; cursor:pointer; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); font-family:inherit; min-width:86px; min-height:52px; }
+  body.party .chcard .chlogo { height:34px; width:auto; max-width:120px; object-fit:contain; }
+  body.party .chcard.chavg { font-size:26px; line-height:1; }
+  body.party .chcard.on { background:linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.07)); border-color:rgba(147,197,253,.75); box-shadow:0 0 0 1px rgba(147,197,253,.4), 0 10px 26px -10px rgba(0,0,0,.6), inset 0 1px 1px rgba(255,255,255,.25); }
   .brboxes { display:flex; gap:10px; flex-wrap:wrap; margin:0 0 18px; }
   .brbox { flex:1; min-width:110px; display:flex; align-items:center; justify-content:space-between; gap:8px; border-radius:14px; padding:5px 14px; background:#f4f7ff; border:1px solid #dbe4f7; border-right:4px solid #1f4e9c; }
   .brbox.bopp { border-right-color:#c1121f; }
@@ -599,7 +599,7 @@ return `<!DOCTYPE html>
   .pcard.r1 .pcbar i { background:linear-gradient(90deg,#fcd34d,#d97706); }
   .pcard.r2 .pcbar i { background:linear-gradient(90deg,#e2e8f0,#94a3b8); }
   .pcard.r3 .pcbar i { background:linear-gradient(90deg,#fdba74,#c2703e); }
-  body.party .podiumbox { background:transparent; border:none; padding:6px 4px 8px; margin:2px 0; overflow:visible; }
+  body.party .podiumbox { background:transparent; border:none; padding:8px 4px 4px; margin:2px 0; }
   body.party .podiumbox .ptitle { font-size:20px; margin-bottom:8px; }
   body.party .pcard { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); border-top-color:rgba(255,255,255,.30); backdrop-filter:blur(18px) saturate(180%); -webkit-backdrop-filter:blur(18px) saturate(180%); box-shadow:inset 0 1px 0 rgba(255,255,255,.2), 0 12px 30px -12px rgba(0,0,0,.55); }
   body.party .pclbl { color:rgba(255,255,255,.6); }
@@ -624,9 +624,9 @@ return `<!DOCTYPE html>
   body.party .rssrc { justify-self:start; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:2px 10px; }
   @media (max-height:800px) {
     body.party .chhero { padding:6px 12px; }
-    body.party .chcard { padding:4px 10px; }
+    body.party .chcard { padding:5px 12px; min-height:40px; min-width:64px; }
     body.party .chcard .chlogo { height:24px; }
-    body.party .chcard .chld { font-size:12.5px; }
+    body.party .chcard.chavg { font-size:19px; }
     body.party .brboxes { margin-bottom:16px; }
     body.party .brbox { padding:3px 10px; }
     body.party .brbox b { font-size:20px; }
@@ -644,7 +644,8 @@ return `<!DOCTYPE html>
     body.party .rotprog { margin-top:3px; }
     body.party .blocrace { margin:4px 0 2px !important; }
     body.party .chhero { padding:4px 10px; gap:10px; }
-    body.party .chhero .chlogo { height:34px; border-radius:8px; }
+    body.party .chhero .chlogo { height:34px; }
+    body.party .chhero.chonly .chlogo { height:44px; }
     body.party .chhero .hlogos .chlogo { height:26px; }
     body.party .chhero .hsub { display:none; }
     body.party .chcard .chgo { padding:2px 8px; }
@@ -1279,16 +1280,17 @@ function renderPodium(list, isFinal) {
   ranked.forEach((b, i) => { if (prev === null || Math.abs(b.score - prev) > 1e-9) { rank = i + 1; prev = b.score; } b._rank = rank; });
   const cols = [2, 1, 3].map(r => {
     const bs = ranked.filter(b => b._rank === r);
-    if (!bs.length) return "";
-    const names = bs.map(b => '<div class="pname pcname">' + escapeHtml(b.name) + (b.groupName ? ' <span class="gname">' + escapeHtml(b.groupName) + "</span>" : "") + "</div>").join("");
-    return '<div class="pcard r' + r + '" data-r="' + r + '">' +
-      '<div class="pctop"><span class="pclbl">מקום ' + r + '</span><span class="pcrank">' + r + "</span></div>" +
-      '<div class="pcnames">' + (r === 1 ? '<span class="pccrown">👑</span>' : "") + names + "</div>" +
-      '<div class="pcscore"><span class="pscore fx-num" data-v="' + bs[0].score.toFixed(2) + '">' + bs[0].score.toFixed(2) + '</span> <span class="pcpts">נקודות</span></div>' +
-      '<div class="pcbar"><i style="width:' + Math.max(0, Math.min(100, bs[0].score)) + '%"></i></div></div>';
+    if (!bs.length) return '<div class="col" data-r="' + r + '"><div class="step s' + r + ' empty"></div></div>';
+    const names = bs.map(b => '<div class="pname">' + escapeHtml(b.name) + "</div>").join("");
+    return '<div class="col c' + r + '" data-r="' + r + '">' +
+      (r === 1 ? '<div class="crown"><svg viewBox="0 0 32 26" width="34" height="28"><path d="M2 19 L0 5 L9 11 L16 0 L23 11 L32 5 L30 19 Z" fill="#f0b429" stroke="#b97f0e" stroke-width="1.4" stroke-linejoin="round"/><rect x="3" y="20.5" width="26" height="3.4" rx="1.7" fill="#b97f0e"/></svg></div>' : "") +
+      '<div class="pmedal">' + r + "</div>" +
+      '<div class="pnames">' + names + "</div>" +
+      '<div class="pscore fx-num" data-v="' + bs[0].score.toFixed(2) + '">' + bs[0].score.toFixed(2) + "</div>" +
+      '<div class="step s' + r + '"></div></div>';
   }).join("");
   return '<div class="podiumbox' + (isFinal ? " final" : "") + '"><div class="podspot"></div><div class="ptitle">' +
-    (isFinal ? "🏆 המנצחים!" : "המובילים נכון לעכשיו - זמני ⏳") + '</div><div class="pcards">' + cols + '</div><div class="scorefoot">* הניקוד: מתחילים מ-100 נקודות. כל מנדט סטייה מהתוצאה מוריד נקודות - סטייה במפלגה גדולה עולה יותר, וטעות בכניסה או יציאה של מפלגה מהכנסת עולה 5 נקודות. בתיקו חולקים את המקום.</div></div>';
+    (isFinal ? "🏆 המנצחים!" : "המובילים נכון לעכשיו - זמני ⏳") + '</div><div class="podium">' + cols + '</div><div class="scorefoot">* הניקוד: מתחילים מ-100 נקודות. כל מנדט סטייה מהתוצאה מוריד נקודות - סטייה במפלגה גדולה עולה יותר, וטעות בכניסה או יציאה של מפלגה מהכנסת עולה 5 נקודות. בתיקו חולקים את המקום.</div></div>';
 }
 
 // תיאוריאטור הכניסות: אריחים, ספירות, גושים, טבלה, פודיום - הכל בקפיצים מדורגים
@@ -1324,7 +1326,7 @@ function fxChoreograph(box, res, prevSeats, first) {
   const pod = box.querySelector(".podiumbox");
   if (pod) {
     const order = { "3": 0, "2": 1, "1": 2 };
-    pod.querySelectorAll(".pcard").forEach(col => {
+    pod.querySelectorAll(".col").forEach(col => {
       const i = order[col.dataset.r] || 0;
       const delay = (first ? 500 : 100) + i * 420;
       FX.anim(col, [{ opacity: 0, transform: "translateY(46px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 700, delay, easing: FX.SPRING });
@@ -1495,12 +1497,11 @@ function renderResults(mb, gflat) {
     if (PARTY_MODE) {
       const cur = selectedExitChannel == null ? null : usable[selectedExitChannel];
       const pos = selectedExitChannel == null ? 0 : selectedExitChannel + 1;
-      hero = '<div class="chhero">' +
-        (cur ? logoImg(cur.label) : '<span class="hlogos">' + usable.map(pl => logoImg(pl.label)).join("") + "</span>") +
-        '<div class="htext"><div class="hlabel">' + (cur ? escapeHtml(cur.label) : "ממוצע משוכלל") + "</div>" +
-        '<div class="hsub">' + (cur ? "המנדטים לפי מדגם " + escapeHtml(cur.label) : "שילוב משוכלל של כל המדגמים - בדיוק 120 מנדטים") + "</div>" +
-        '<div class="rotprog"><button type="button" class="rotseg' + (pos === 0 ? " on" : " done") + '" data-ch="-1"><span class="fill"></span></button>' +
-        usable.map((pl, i) => '<button type="button" class="rotseg' + (pos === i + 1 ? " on" : pos > i + 1 ? " done" : "") + '" data-ch="' + i + '"><span class="fill"></span></button>').join("") + "</div></div></div>";
+      const prog = '<div class="rotprog"><button type="button" class="rotseg' + (pos === 0 ? " on" : " done") + '" data-ch="-1"><span class="fill"></span></button>' +
+        usable.map((pl, i) => '<button type="button" class="rotseg' + (pos === i + 1 ? " on" : pos > i + 1 ? " done" : "") + '" data-ch="' + i + '"><span class="fill"></span></button>').join("") + "</div>";
+      hero = cur
+        ? '<div class="chhero chonly">' + logoImg(cur.label) + prog + "</div>"
+        : '<div class="chhero"><div class="htext"><div class="hlabel">ממוצע משוכלל</div>' + prog + '</div><span class="hlogos">' + usable.map(pl => logoImg(pl.label)).join("") + "</span></div>";
     } else {
       switcher = '<div class="chswitch">' +
         '<button type="button" class="chpill' + (selectedExitChannel == null ? " active" : "") + '" data-ch="-1">ממוצע הערוצים</button>' +
@@ -1510,8 +1511,8 @@ function renderResults(mb, gflat) {
     const divided = new Set(leaders.map(l => l.p.id)).size > 1;
     if (PARTY_MODE) {
       divCards = '<div class="chcards">' + (divided ? '<div class="chcap">⚡ המדגמים חלוקים על המוביל - לחצו לעבור בין המדגמים:</div>' : "") + '<div class="chcardrow">' +
-        '<button type="button" class="chcard' + (selectedExitChannel == null ? " on" : "") + '" data-ch="-1"><span class="chtx"><span class="chch">כל הערוצים</span><span class="chld">ממוצע משוכלל</span></span><span class="chgo">' + (selectedExitChannel == null ? "פעיל" : "הצג") + "</span></button>" +
-        usable.map((pl, i) => '<button type="button" class="chcard' + (selectedExitChannel === i ? " on" : "") + '" data-ch="' + i + '">' + logoImg(pl.label) + '<span class="chtx"><span class="chch">' + escapeHtml(pl.label) + '</span><span class="chld">' + leaders[i].p.name + " " + leaders[i].s + '</span></span><span class="chgo">' + (selectedExitChannel === i ? "פעיל" : "הצג") + "</span></button>").join("") + "</div></div>";
+        '<button type="button" class="chcard chavg' + (selectedExitChannel == null ? " on" : "") + '" data-ch="-1" title="ממוצע משוכלל">🗳️</button>' +
+        usable.map((pl, i) => '<button type="button" class="chcard' + (selectedExitChannel === i ? " on" : "") + '" data-ch="' + i + '" title="' + escapeHtml(pl.label) + '">' + logoImg(pl.label) + "</button>").join("") + "</div></div>";
     } else if (divided) {
       divCards = '<div class="chcards"><div class="chcap">⚡ המדגמים חלוקים על המוביל - לחצו לעבור בין המדגמים:</div><div class="chcardrow">' +
         usable.map((pl, i) => '<button type="button" class="chcard" data-ch="' + i + '" style="border-color:' + leaders[i].p.color + '"><span class="chch">' + escapeHtml(pl.label) + '</span><span class="chld">' + leaders[i].p.name + " " + leaders[i].s + "</span></button>").join("") + "</div></div>";
