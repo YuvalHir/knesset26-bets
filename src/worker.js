@@ -384,8 +384,9 @@ return `<!DOCTYPE html>
   body.party main { padding:0 !important; margin:0 !important; max-width:none !important; width:100% !important; }
   body.party .resultsbox { margin:0 !important; border:none !important; border-radius:0 !important; min-height:100dvh; box-sizing:border-box;
     display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.55fr); column-gap:16px; align-content:start;
-    grid-template-areas:"head head" "src src" "chsw chsw" "chcd chcd" "pod grid" "bloc grid" "land grid" "cred cred"; }
+    grid-template-areas:"head head" "src src" "hero hero" "chsw chsw" "chcd chcd" "pod grid" "bloc grid" "land grid" "cred cred"; }
   body.party .resultsbox > .chswitch { grid-area:chsw; }
+  body.party .resultsbox > .chhero { grid-area:hero; }
   body.party .resultsbox > .chcards { grid-area:chcd; }
   body.party .resultsbox > h2 { grid-area:head; margin:0 0 2px; }
   body.party .resultsbox > .rssrc { grid-area:src; }
@@ -443,6 +444,32 @@ return `<!DOCTYPE html>
   body.party .podium .pname { font-size:.82rem; }
   body.party .podium .c1 .pname { font-size:.95rem; }
   body.party .podium .pscore { font-size:.82rem; }
+  @media (max-height:800px) {
+    body.party .tmlog .tm { font-size:10px; padding-bottom:3px; }
+    body.party .tmlog h3 { font-size:13px !important; margin:2px 0 !important; }
+    body.party .resultsbox > h2 { font-size:19px !important; }
+    body.party .chswitch { margin:0; }
+    body.party .chcards { margin:2px 0 0; }
+    body.party .chcard { padding:3px 9px; }
+    body.party .blocrace .brlegend { font-size:9px; line-height:1.35; }
+    body.party .blocrace { margin:8px 0 2px !important; }
+    body.party .pcredits { font-size:9px; }
+    body.party .chhero { margin:0 0 2px; gap:12px; }
+    body.party .chhero .chlogo { height:44px; border-radius:10px; padding:4px 12px; }
+    body.party .chhero .hlogos .chlogo { height:30px; }
+    body.party .chhero .hlabel { font-size:18px; }
+    body.party .chhero .hsub { font-size:10.5px; margin-top:1px; }
+    body.party .rotprog { margin-top:5px; }
+    body.party .rotseg { width:32px; height:4px; }
+    body.party .chcard { padding:2px 8px; }
+    body.party .tmlog .tm { padding-bottom:2px; }
+    body.party .podiumbox { padding:6px 8px 8px; }
+    body.party .podiumbox .ptitle { font-size:17px; margin-bottom:2px; }
+    body.party .podium .step.s1 { height:44px; }
+    body.party .podium .step.s2 { height:31px; }
+    body.party .podium .step.s3 { height:23px; }
+    body.party .podiumbox .scorefoot { font-size:9.5px; margin-top:8px; }
+  }
   @media (max-height:700px) {
     body.party .pphoto { height:58px; }
     body.party .pseats { top:26px; font-size:27px; }
@@ -499,6 +526,16 @@ return `<!DOCTYPE html>
   body.party .tmlog .tm::after { background:#26314a; }
   body.party .tmlog .tm .tmtime { color:#7c8cb0; }
   body.party .scorefoot { color:#7c8cb0; }
+  .chhero { display:flex; align-items:center; gap:16px; margin:4px 0 6px; }
+  .chhero .chlogo { height:60px; width:auto; max-width:180px; object-fit:contain; background:#fff; border-radius:14px; padding:6px 16px; box-shadow:0 8px 28px rgba(0,0,0,.45); }
+  .chhero .hlogos { display:inline-flex; gap:10px; flex-wrap:wrap; }
+  .chhero .hlogos .chlogo { height:38px; max-width:110px; border-radius:10px; padding:4px 10px; }
+  .chhero .hlabel { font-size:23px; font-weight:900; color:#fff; line-height:1.15; }
+  .chhero .hsub { font-size:12px; color:#8ea0c8; margin-top:2px; }
+  .rotprog { display:flex; gap:6px; margin-top:8px; }
+  .rotseg { width:44px; height:5px; border-radius:3px; border:none; padding:0; background:#26314a; cursor:pointer; overflow:hidden; }
+  .rotseg .fill { display:block; height:100%; width:0; background:linear-gradient(90deg,#3b82f6,#93c5fd); border-radius:3px; }
+  .rotseg.done .fill { width:100% !important; background:#3b82f6; }
 </style>
 </head>
 <body>
@@ -1181,7 +1218,60 @@ function fxChoreograph(box, res, prevSeats, first) {
 
 // ===== תצוגת זמן-אמת מול המדגמים (אושר ע"י יובל 25.10) =====
 let lastRenderedSeats = null;
-let selectedExitChannel = null; // null = ממוצע; אחרת אינדקס במדגמים הזמינים
+let selectedExitChannel = null;
+let rotTimer = null;
+let rotSwap = false;
+const ROT_MS = 7000;
+
+// לוגואי הערוצים (public/channels) - זיהוי לפי שם המדגם; נופל חזרה לתג טקסט אם אין קובץ
+function logoFor(label) {
+  const l = (label || "").toLowerCase();
+  if (l.includes("i24")) return "i24";
+  if (l.includes("כאן") || l.includes("kan") || l.includes("11")) return "kan11";
+  if (l.includes("14")) return "now14";
+  if (l.includes("13")) return "ch13";
+  if (l.includes("12")) return "ch12";
+  return null;
+}
+function logoImg(label) {
+  const k = logoFor(label);
+  return k ? '<img class="chlogo" src="/channels/' + k + '.png" alt="" onerror="this.remove()">' : "";
+}
+// סיבוב אוטומטי בין המדגמים במסך המסיבה: ממוצע משוכלל -> ערוץ 1 -> ערוץ 2 -> ... (ROT_MS לכל שקופית)
+function startPartyRotation() {
+  stopPartyRotation();
+  if (!PARTY_MODE || RESULT_STAGE !== "exit") return;
+  const usable = EXIT_POLLS.filter(pl => pl.seats);
+  if (usable.length < 2) return;
+  rotTimer = setInterval(() => {
+    if (document.hidden) return;
+    selectedExitChannel = selectedExitChannel == null ? 0 : (selectedExitChannel + 1 >= usable.length ? null : selectedExitChannel + 1);
+    rotSwap = true;
+    renderResults(lastMb, lastGflat);
+  }, ROT_MS);
+}
+// מעבר שקופיות חלק: אריחים בקסקייד, ספירות מונפשות, גושים זזים, בלי קונפטי חוזר
+function fxSlideSwap(box, res, prevSeats) {
+  box.querySelectorAll(".ptile").forEach((t, i) => {
+    FX.anim(t, [{ opacity: 0, transform: "translateY(18px) scale(.96)", filter: "blur(4px)" }, { opacity: 1, transform: "translateY(0) scale(1)", filter: "blur(0px)" }], { duration: 520, delay: i * 45, easing: FX.SPRING });
+    const num = t.querySelector(".fx-num");
+    if (num) { const v = +num.dataset.v, pv = prevSeats ? (prevSeats[t.dataset.pid] || 0) : 0; if (pv !== v) FX.countUp(num, pv, v, 120 + i * 45, 650); }
+  });
+  const segs = box.querySelectorAll(".brseg");
+  if (segs.length && prevSeats) {
+    const prevBs = blocSums(prevSeats);
+    const prevWidths = [prevBs.right, 120 - prevBs.right - prevBs.arab, prevBs.arab].map(x => (x / 120 * 100) + "%");
+    segs.forEach((s, i) => FX.anim(s, [{ width: prevWidths[i] }, { width: s.style.width }], { duration: 800, delay: 100, easing: FX.EASE }));
+  }
+  const pod = box.querySelector(".podiumbox");
+  if (pod) {
+    FX.anim(pod, [{ opacity: 0, transform: "translateY(12px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 500, delay: 80, easing: FX.EASE });
+    pod.querySelectorAll(".pscore").forEach((sc, i) => FX.countUp(sc, 0, parseFloat(sc.dataset.v), 250 + i * 120, 800, 2));
+  }
+  const hero = box.querySelector(".chhero");
+  if (hero) FX.anim(hero, [{ opacity: 0, transform: "translateY(-8px)", filter: "blur(3px)" }, { opacity: 1, transform: "translateY(0)", filter: "blur(0px)" }], { duration: 450, easing: FX.EASE });
+}
+function stopPartyRotation() { if (rotTimer) { clearInterval(rotTimer); rotTimer = null; } } // null = ממוצע; אחרת אינדקס במדגמים הזמינים
 { const chq = new URLSearchParams(location.search).get("ch"); if (chq) selectedExitChannel = parseInt(chq, 10); }
 let lastMb = null, lastGflat = null;
 
@@ -1268,11 +1358,22 @@ function renderResults(mb, gflat) {
   const srcs = comb.srcs.map(x => '<a href="' + x.src + '" target="_blank">' + escapeHtml(x.label) + " " + x.date + "</a>").join(" · ");
   // מתג מדגמים (שלב המדגמים בלבד) + כרטיסי פיצול כשהערוצים חלוקים על המוביל
   const usable = RESULT_STAGE === "exit" ? EXIT_POLLS.filter(pl => pl.seats) : [];
-  let switcher = "", divCards = "";
+  let switcher = "", hero = "", divCards = "";
   if (usable.length > 1) {
-    switcher = '<div class="chswitch">' +
-      '<button type="button" class="chpill' + (selectedExitChannel == null ? " active" : "") + '" data-ch="-1">ממוצע הערוצים</button>' +
-      usable.map((pl, i) => '<button type="button" class="chpill' + (selectedExitChannel === i ? " active" : "") + '" data-ch="' + i + '">' + escapeHtml(pl.label) + "</button>").join("") + "</div>";
+    if (PARTY_MODE) {
+      const cur = selectedExitChannel == null ? null : usable[selectedExitChannel];
+      const pos = selectedExitChannel == null ? 0 : selectedExitChannel + 1;
+      hero = '<div class="chhero">' +
+        (cur ? logoImg(cur.label) : '<span class="hlogos">' + usable.map(pl => logoImg(pl.label)).join("") + "</span>") +
+        '<div class="htext"><div class="hlabel">' + (cur ? escapeHtml(cur.label) : "ממוצע משוכלל") + "</div>" +
+        '<div class="hsub">' + (cur ? "המנדטים לפי מדגם " + escapeHtml(cur.label) : "שילוב משוכלל של כל המדגמים - בדיוק 120 מנדטים") + "</div>" +
+        '<div class="rotprog"><button type="button" class="rotseg' + (pos === 0 ? " on" : " done") + '" data-ch="-1"><span class="fill"></span></button>' +
+        usable.map((pl, i) => '<button type="button" class="rotseg' + (pos === i + 1 ? " on" : pos > i + 1 ? " done" : "") + '" data-ch="' + i + '"><span class="fill"></span></button>').join("") + "</div></div></div>";
+    } else {
+      switcher = '<div class="chswitch">' +
+        '<button type="button" class="chpill' + (selectedExitChannel == null ? " active" : "") + '" data-ch="-1">ממוצע הערוצים</button>' +
+        usable.map((pl, i) => '<button type="button" class="chpill' + (selectedExitChannel === i ? " active" : "") + '" data-ch="' + i + '">' + escapeHtml(pl.label) + "</button>").join("") + "</div>";
+    }
     const leaders = usable.map(pl => { let best = null; PARTIES.forEach(p => { const s = pl.seats[p.id] || 0; if (!best || s > best.s) best = { p, s }; }); return best; });
     if (new Set(leaders.map(l => l.p.id)).size > 1) {
       divCards = '<div class="chcards"><div class="chcap">⚡ המדגמים חלוקים על המוביל - לחצו לעבור בין המדגמים:</div><div class="chcardrow">' +
@@ -1297,22 +1398,27 @@ function renderResults(mb, gflat) {
   const prevSeats = lastRenderedSeats;
   el.innerHTML = '<div class="resultsbox"><h2>' + stageLabel + countedLine + "</h2>" +
     '<div class="rssrc">מקורות: ' + srcs + "</div>" +
-    switcher + divCards +
+    switcher + hero + divCards +
     renderPodium(gflat, RESULT_STAGE === "official") +
     '<div class="pgridwrap"><div class="pgrid">' + tiles + "</div>" + notthr + '</div>' + deltaCap + blocRace(res) +
     '<div class="pcredits">תמונות המנהיגים: <a href="https://github.com/YuvalHir/knesset26-bets/blob/main/public/leaders/CREDITS.md" target="_blank">ויקימדיה קומונס · רשיונות פתוחים וקרדיטים מלאים</a></div>' +
     '<div class="landrow">' + nightTimeline(res) + "</div>" +
     lb(mb, "🏆 מי הכי קרוב - " + group.name) + lb(gflat, "🏆 מי הכי קרוב - כל הקבוצות") + "</div>";
   lastMb = mb; lastGflat = gflat;
-  el.querySelectorAll(".chpill,.chcard").forEach(b => b.addEventListener("click", () => {
+  el.querySelectorAll(".chpill,.chcard,.rotseg").forEach(b => b.addEventListener("click", () => {
     const ch = parseInt(b.dataset.ch, 10);
     selectedExitChannel = ch < 0 ? null : ch;
-    fxPrimed = false;
+    stopPartyRotation();
+    rotSwap = true;
     renderResults(lastMb, lastGflat);
   }));
-  if (!FX.reduced) fxChoreograph(el, res, prevSeats, !fxPrimed);
+  startPartyRotation();
+  if (!FX.reduced) { if (rotSwap) fxSlideSwap(el, res, prevSeats); else fxChoreograph(el, res, prevSeats, !fxPrimed); }
+  rotSwap = false;
   fxPrimed = true;
   lastRenderedSeats = res;
+  const pf = el.querySelector(".rotseg.on .fill");
+  if (pf && rotTimer && !FX.reduced) requestAnimationFrame(() => requestAnimationFrame(() => { pf.style.transition = "width " + ROT_MS + "ms linear"; pf.style.width = "100%"; }));
 }
 
 function renderBets(el, bets, showGroup) {
