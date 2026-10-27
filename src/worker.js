@@ -1359,6 +1359,7 @@ const ROT_MS = 7000;
 function logoFor(label) {
   const l = (label || "").toLowerCase();
   if (l.includes("i24")) return "i24";
+  if (l.includes("16")) return "ch16";
   if (l.includes("כאן") || l.includes("kan") || l.includes("11")) return "kan11";
   if (l.includes("14")) return "now14";
   if (l.includes("13")) return "ch13";
