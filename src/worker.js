@@ -1447,7 +1447,7 @@ function nightTimeline(res) {
   if (RESULT_STAGE === "exit_actual") ev.push({ id: "sample", t: "", txt: "⏳ תוצאות האמת של קלפיות המדגם" + (COUNTED != null ? " · נספרו " + COUNTED + "% מהקולות" : ""), live: true });
   if (RESULT_STAGE !== "exit") {
     const ex = exitAvgSeats();
-    if (ex) {
+    if (ex && RESULT_STAGE === "official") {
       const b0 = blocSums(ex), b1 = blocSums(res);
       if ((b0.right >= 61) !== (b1.right >= 61)) ev.push({ id: "cross61", t: "", txt: b1.right >= 61 ? "👑 הקואליציה חצתה את 61 המנדטים" : "⚡ הקואליציה ירדה מתחת ל-61", live: true });
     }
@@ -1473,7 +1473,7 @@ function renderResults(mb, gflat) {
   if (!comb) { el.innerHTML = ""; lastRenderedSeats = null; return; }
   const res = comb.seats;
   const stageLabel = RESULT_STAGE === "official" ? "תוצאות אמת מלאות ✔"
-    : (RESULT_STAGE === "exit_actual" ? "תוצאות האמת של קלפיות המדגם - זמני ⏳" : "מדגמי הערוצים - זמני ⏳");
+    : (RESULT_STAGE === "exit_actual" ? "תוצאות אמת ראשונות - ספירה גולמית חלקית, לא תחזית ⏳" : "מדגמי הערוצים - זמני ⏳");
   const countedLine = COUNTED != null ? ' <span class="counted">🧮 נספרו ' + COUNTED + "% מהקולות</span>" : "";
   const base = RESULT_STAGE === "exit" ? null : exitAvgSeats(); // (3) בסיס המדגם לחצים
   // לוח מפלגות בסגנון גרפיקות הערוצים: תמונת מנהיג, מנדטים גדולים, שם מפלגה, ממוין לפי גודל
