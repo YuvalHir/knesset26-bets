@@ -1452,7 +1452,7 @@ function nightTimeline(res) {
       if ((b0.right >= 61) !== (b1.right >= 61)) ev.push({ id: "cross61", t: "", txt: b1.right >= 61 ? "👑 הקואליציה חצתה את 61 המנדטים" : "⚡ הקואליציה ירדה מתחת ל-61", live: true });
     }
     const ranked = usable.map(pl => ({ label: pl.label, err: PARTIES.reduce((a, p) => a + Math.abs((pl.seats[p.id] || 0) - (res[p.id] || 0)), 0) })).sort((a, b) => a.err - b.err);
-    if (ranked.length) ev.push({ id: "closest", t: "", txt: "🏆 המדגם הכי קרוב לאמת כרגע: " + ranked[0].label + " (פער " + ranked[0].err + " מנדטים)" });
+    if (ranked.length) ev.push({ id: "closest", t: "", txt: (RESULT_STAGE === "official" ? "🏆 המדגם הכי קרוב לאמת כרגע: " : "🏆 המדגם הכי קרוב לספירה החלקית כרגע: ") + ranked[0].label + " (פער " + ranked[0].err + " מנדטים)" });
   }
   usable.forEach((pl, i) => ev.push({ id: "ex-" + i, t: pl.date || "", txt: "📺 פורסם מדגם " + pl.label, chi: i }));
   if (!ev.length) ev.push({ id: "wait", t: "", txt: "🌙 מחכים ל-22:00 - המדגמים בדרך", live: true });
