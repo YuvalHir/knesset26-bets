@@ -171,6 +171,7 @@ return `<!DOCTYPE html>
   .resultsbox { background:#fff; border:1px solid #dfe7fb; border-radius:14px; padding:14px; margin-bottom:18px; }
   .resultsbox h2 { margin:0 0 4px; font-size:20px; color:var(--bluedark); }
   .rssrc { font-size:12.5px; color:#5a6a96; margin-bottom:10px; }
+  .finalnote { font-size:11.5px; color:#8a97b8; margin-top:-6px; margin-bottom:10px; }
   .lrow { display:flex; align-items:center; gap:8px; padding:6px 4px; border-top:1px solid #eef2fb; font-size:15px; }
   .lrow.win { background:#fff8e1; border-radius:8px; font-weight:700; }
   .lrow .rank { width:28px; text-align:center; }
@@ -1536,6 +1537,7 @@ function renderResults(mb, gflat) {
   const prevSeats = lastRenderedSeats;
   el.innerHTML = '<div class="resultsbox"><h2>' + (PARTY_MODE ? '<span class="livebadge"><i></i>עדכון חי</span> ' : "") + stageLabel + countedLine + "</h2>" +
     (PARTY_MODE ? "" : '<div class="rssrc">מקורות: ' + srcs + "</div>") +
+    (RESULT_STAGE === "official" ? '<div class="finalnote">* לפי תמונת הספירה המלאה מ-29.10.2026. הפרסום הרשמי של ועדת הבחירות המרכזית צפוי ב-4.11.2026; אם יהיו שינויים - הטבלה והזוכים יעודכנו.</div>' : "") +
     switcher + hero + divCards +
     renderPodium(gflat, RESULT_STAGE === "official") +
     '<div class="pgridwrap"><div class="pgrid">' + tiles + "</div>" + notthr + '</div>' + deltaCap + blocRace(res) +
